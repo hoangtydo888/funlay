@@ -151,10 +151,10 @@ const YourVideos = () => {
                   </div>
                   <div className="flex flex-col gap-2 flex-shrink-0">
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
                       onClick={() => navigate(`/edit-video/${video.id}`)}
-                      className="gap-2 min-w-[100px] justify-start"
+                      className="gap-2 min-w-[100px] justify-start bg-blue-600 hover:bg-yellow-400 hover:text-black transition-colors"
                     >
                       <Edit className="h-4 w-4" />
                       Sửa
@@ -162,16 +162,16 @@ const YourVideos = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2 min-w-[100px] justify-start"
+                      className="gap-2 min-w-[100px] justify-start hover:bg-yellow-400 hover:text-black hover:border-yellow-400 transition-colors"
                     >
                       <EyeOff className="h-4 w-4" />
                       Ẩn
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => setDeleteVideoId(video.id)}
-                      className="gap-2 min-w-[100px] justify-start text-destructive hover:bg-destructive/10 border-destructive/20"
+                      className="gap-2 min-w-[100px] justify-start bg-red-600 hover:bg-yellow-400 hover:text-black transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                       Xóa
