@@ -68,10 +68,12 @@ export default function Channel() {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("id")
-          .eq("username", username)
-          .single();
+          .eq("username", username.replace('@', ''))
+          .maybeSingle();
           
-        if (profileError) throw profileError;
+        if (profileError || !profileData) {
+          throw new Error("Profile not found");
+        }
         
         // Then get channel by user_id
         query = query.eq("user_id", profileData.id);
@@ -79,9 +81,14 @@ export default function Channel() {
         query = query.eq("id", id);
       }
       
-      const { data, error } = await query.single();
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error("Channel not found");
+      }
+      
       setChannel(data);
 
       // Fetch profile for background music
@@ -272,6 +279,8 @@ export default function Channel() {
                   <VideoCard
                     key={video.id}
                     videoId={video.id}
+                    userId={channel.user_id}
+                    channelId={channel.id}
                     thumbnail={video.thumbnail_url || "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=225&fit=crop"}
                     title={video.title}
                     channel={channel.name}
