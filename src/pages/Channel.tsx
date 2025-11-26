@@ -239,8 +239,8 @@ export default function Channel() {
               <h1 className="text-3xl font-bold text-foreground mb-1">
                 {channel.name}
               </h1>
-              <p className="text-muted-foreground mb-2">
-                {channel.subscriber_count || 0} subscribers
+              <p className="text-muted-foreground mb-2 font-semibold">
+                {(channel.subscriber_count || 0).toLocaleString()} người đăng ký
               </p>
               {channel.description && (
                 <p className="text-sm text-foreground">{channel.description}</p>
@@ -248,10 +248,13 @@ export default function Channel() {
             </div>
             <Button
               onClick={handleSubscribe}
-              variant={isSubscribed ? "secondary" : "default"}
-              className="rounded-full"
+              className={`rounded-full px-6 ${
+                isSubscribed
+                  ? "bg-muted hover:bg-muted/80 text-foreground"
+                  : "bg-gradient-to-r from-cosmic-sapphire to-cosmic-cyan hover:from-cosmic-sapphire/90 hover:to-cosmic-cyan/90 text-foreground shadow-[0_0_30px_rgba(0,255,255,0.5)]"
+              }`}
             >
-              {isSubscribed ? "Subscribed" : "Subscribe"}
+              {isSubscribed ? "Đã đăng ký" : "Đăng ký"}
             </Button>
           </div>
 
