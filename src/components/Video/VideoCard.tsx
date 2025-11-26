@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Play, Volume2, Edit, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ShareModal } from "./ShareModal";
 
 interface VideoCardProps {
   thumbnail: string;
@@ -13,6 +15,7 @@ interface VideoCardProps {
   timestamp: string;
   videoId: string;
   userId?: string;
+  channelId?: string;
   onPlay?: (videoId: string) => void;
 }
 
@@ -24,11 +27,13 @@ export const VideoCard = ({
   timestamp,
   videoId,
   userId,
+  channelId,
   onPlay,
 }: VideoCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const isOwner = user?.id === userId;
 
   const handlePlay = () => {
@@ -44,12 +49,14 @@ export const VideoCard = ({
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}/watch/${videoId}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "Đã copy link",
-      description: "Link video đã được copy vào clipboard",
-    });
+    setShareModalOpen(true);
+  };
+
+  const handleChannelClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (channelId) {
+      navigate(`/channel/${channelId}`);
+    }
   };
 
   return (
@@ -110,8 +117,8 @@ export const VideoCard = ({
 
       {/* Info with glassmorphism */}
       <div className="p-4 flex gap-3 bg-gradient-to-b from-transparent to-background/20">
-        <div className="flex-shrink-0">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta flex items-center justify-center text-foreground font-bold text-sm shadow-[0_0_30px_rgba(0,255,255,0.7)]">
+        <div className="flex-shrink-0" onClick={handleChannelClick}>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta flex items-center justify-center text-foreground font-bold text-sm shadow-[0_0_30px_rgba(0,255,255,0.7)] cursor-pointer hover:scale-110 transition-transform">
             {channel[0]}
           </div>
         </div>
@@ -119,7 +126,12 @@ export const VideoCard = ({
           <h3 className="font-bold text-sm line-clamp-2 mb-1 text-foreground group-hover:text-cosmic-cyan transition-colors duration-300">
             {title}
           </h3>
-          <p className="text-xs text-muted-foreground group-hover:text-divine-rose-gold transition-colors duration-300">{channel}</p>
+          <p 
+            className="text-xs text-muted-foreground group-hover:text-divine-rose-gold transition-colors duration-300 cursor-pointer hover:underline"
+            onClick={handleChannelClick}
+          >
+            {channel}
+          </p>
           <div className="flex items-center gap-2 text-xs text-muted-foreground group-hover:text-cosmic-magenta mt-1 transition-colors duration-300">
             <span>{views}</span>
             <span className="text-cosmic-sapphire">•</span>
@@ -127,6 +139,13 @@ export const VideoCard = ({
           </div>
         </div>
       </div>
+
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        videoId={videoId}
+        videoTitle={title}
+      />
     </Card>
   );
 };

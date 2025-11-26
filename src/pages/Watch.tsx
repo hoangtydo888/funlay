@@ -435,7 +435,7 @@ export default function Watch() {
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-full bg-gradient-to-br from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta flex items-center justify-center text-foreground font-semibold cursor-pointer hover:shadow-[0_0_40px_rgba(0,255,255,0.7)] transition-shadow"
-                    onClick={() => navigate(`/c/${video.channels.id}`)}
+                    onClick={() => navigate(`/channel/${video.channels.id}`)}
                   >
                     {video.channels.name[0]}
                   </div>
@@ -444,7 +444,7 @@ export default function Watch() {
                       className="cursor-pointer"
                       onMouseEnter={() => setShowMiniProfile(true)}
                       onMouseLeave={() => setShowMiniProfile(false)}
-                      onClick={() => navigate(`/c/${video.channels.id}`)}
+                      onClick={() => navigate(`/channel/${video.channels.id}`)}
                     >
                       <p className="font-semibold text-foreground hover:text-cosmic-cyan transition-colors">
                         {video.channels.name}
