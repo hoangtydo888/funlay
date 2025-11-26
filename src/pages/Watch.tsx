@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal, Coins } from "lucide-react";
 import { TipModal } from "@/components/Tipping/TipModal";
+import { ShareModal } from "@/components/Video/ShareModal";
+import { MiniProfileCard } from "@/components/Video/MiniProfileCard";
 
 interface Video {
   id: string;
@@ -57,6 +59,10 @@ export default function Watch() {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [tipModalOpen, setTipModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [showMiniProfile, setShowMiniProfile] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -68,6 +74,13 @@ export default function Watch() {
       fetchRecommendedVideos();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (user && video) {
+      checkSubscription();
+      checkLikeStatus();
+    }
+  }, [user, video]);
 
   const fetchVideo = async () => {
     try {
@@ -234,6 +247,99 @@ export default function Watch() {
     }
   };
 
+  const checkSubscription = async () => {
+    if (!user || !video) return;
+
+    try {
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("id")
+        .eq("channel_id", video.channels.id)
+        .eq("subscriber_id", user.id)
+        .maybeSingle();
+
+      setIsSubscribed(!!data);
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+    }
+  };
+
+  const checkLikeStatus = async () => {
+    if (!user || !id) return;
+
+    try {
+      const { data } = await supabase
+        .from("likes")
+        .select("id")
+        .eq("video_id", id)
+        .eq("user_id", user.id)
+        .eq("is_dislike", false)
+        .maybeSingle();
+
+      setHasLiked(!!data);
+    } catch (error) {
+      console.error("Error checking like status:", error);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    if (!video) return;
+
+    try {
+      if (isSubscribed) {
+        await supabase
+          .from("subscriptions")
+          .delete()
+          .eq("channel_id", video.channels.id)
+          .eq("subscriber_id", user.id);
+
+        await supabase
+          .from("channels")
+          .update({
+            subscriber_count: Math.max(0, (video.channels.subscriber_count || 1) - 1),
+          })
+          .eq("id", video.channels.id);
+
+        setIsSubscribed(false);
+        toast({
+          title: "Đã hủy đăng ký",
+          description: "Bạn đã hủy đăng ký kênh này",
+        });
+      } else {
+        await supabase.from("subscriptions").insert({
+          channel_id: video.channels.id,
+          subscriber_id: user.id,
+        });
+
+        await supabase
+          .from("channels")
+          .update({
+            subscriber_count: (video.channels.subscriber_count || 0) + 1,
+          })
+          .eq("id", video.channels.id);
+
+        setIsSubscribed(true);
+        toast({
+          title: "Đã đăng ký!",
+          description: "Bạn đã đăng ký kênh này thành công",
+        });
+      }
+
+      fetchVideo();
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLike = async () => {
     if (!user) {
       navigate("/auth");
@@ -241,23 +347,41 @@ export default function Watch() {
     }
 
     try {
-      const { error } = await supabase.from("likes").insert({
-        video_id: id,
-        user_id: user.id,
-        is_dislike: false,
-      });
+      if (hasLiked) {
+        // Unlike
+        await supabase
+          .from("likes")
+          .delete()
+          .eq("video_id", id)
+          .eq("user_id", user.id)
+          .eq("is_dislike", false);
 
-      if (error) throw error;
+        await supabase
+          .from("videos")
+          .update({ like_count: Math.max(0, (video?.like_count || 1) - 1) })
+          .eq("id", id);
 
-      await supabase
-        .from("videos")
-        .update({ like_count: (video?.like_count || 0) + 1 })
-        .eq("id", id);
+        setHasLiked(false);
+      } else {
+        // Like
+        await supabase.from("likes").insert({
+          video_id: id,
+          user_id: user.id,
+          is_dislike: false,
+        });
+
+        await supabase
+          .from("videos")
+          .update({ like_count: (video?.like_count || 0) + 1 })
+          .eq("id", id);
+
+        setHasLiked(true);
+      }
 
       fetchVideo();
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Lỗi",
         description: error.message,
         variant: "destructive",
       });
@@ -309,38 +433,74 @@ export default function Watch() {
               {/* Channel Info & Actions */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+                  <div
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta flex items-center justify-center text-foreground font-semibold cursor-pointer hover:shadow-[0_0_40px_rgba(0,255,255,0.7)] transition-shadow"
+                    onClick={() => navigate(`/c/${video.channels.id}`)}
+                  >
                     {video.channels.name[0]}
                   </div>
-                  <div>
-                    <p className="font-semibold text-foreground">
-                      {video.channels.name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {video.channels.subscriber_count || 0} người đăng ký
-                    </p>
+                  <div className="relative">
+                    <div
+                      className="cursor-pointer"
+                      onMouseEnter={() => setShowMiniProfile(true)}
+                      onMouseLeave={() => setShowMiniProfile(false)}
+                      onClick={() => navigate(`/c/${video.channels.id}`)}
+                    >
+                      <p className="font-semibold text-foreground hover:text-cosmic-cyan transition-colors">
+                        {video.channels.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {(video.channels.subscriber_count || 0).toLocaleString()} người đăng ký
+                      </p>
+                    </div>
+                    {showMiniProfile && (
+                      <div
+                        className="absolute top-full left-0 mt-2"
+                        onMouseEnter={() => setShowMiniProfile(true)}
+                        onMouseLeave={() => setShowMiniProfile(false)}
+                      >
+                        <MiniProfileCard
+                          channelId={video.channels.id}
+                          channelName={video.channels.name}
+                          subscriberCount={video.channels.subscriber_count || 0}
+                          onSubscribeChange={() => {
+                            fetchVideo();
+                            checkSubscription();
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <Button className="rounded-full ml-2">
-                    Đăng ký
+                  <Button
+                    onClick={handleSubscribe}
+                    className={`rounded-full ml-2 ${
+                      isSubscribed
+                        ? "bg-muted hover:bg-muted/80 text-foreground"
+                        : "bg-gradient-to-r from-cosmic-sapphire to-cosmic-cyan hover:from-cosmic-sapphire/90 hover:to-cosmic-cyan/90 text-foreground shadow-[0_0_30px_rgba(0,255,255,0.5)]"
+                    }`}
+                  >
+                    {isSubscribed ? "Đã đăng ký" : "Đăng ký"}
                   </Button>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center bg-muted rounded-full overflow-hidden">
+                  <div className="flex items-center bg-muted/50 rounded-full overflow-hidden border border-cosmic-cyan/20">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="rounded-full rounded-r-none gap-2 hover:bg-muted-foreground/10"
+                      className={`rounded-full rounded-r-none gap-2 hover:bg-cosmic-cyan/20 ${
+                        hasLiked ? "text-cosmic-cyan" : ""
+                      }`}
                       onClick={handleLike}
                     >
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>{video.like_count || 0}</span>
+                      <ThumbsUp className={`h-4 w-4 ${hasLiked ? "fill-current" : ""}`} />
+                      <span className="font-semibold">{video.like_count || 0}</span>
                     </Button>
                     <div className="w-px h-6 bg-border"></div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="rounded-full rounded-l-none hover:bg-muted-foreground/10"
+                      className="rounded-full rounded-l-none hover:bg-cosmic-magenta/20"
                     >
                       <ThumbsDown className="h-4 w-4" />
                     </Button>
@@ -348,7 +508,8 @@ export default function Watch() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="rounded-full gap-2"
+                    className="rounded-full gap-2 bg-muted/50 hover:bg-cosmic-sapphire/20 border border-cosmic-sapphire/20"
+                    onClick={() => setShareModalOpen(true)}
                   >
                     <Share2 className="h-4 w-4" />
                     Chia sẻ
@@ -356,16 +517,16 @@ export default function Watch() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="rounded-full gap-2"
+                    className="rounded-full gap-2 bg-gradient-to-r from-glow-gold/20 to-divine-rose-gold/20 hover:from-glow-gold/30 hover:to-divine-rose-gold/30 border border-glow-gold/30"
                     onClick={() => setTipModalOpen(true)}
                   >
-                    <Coins className="h-4 w-4" />
+                    <Coins className="h-4 w-4 text-glow-gold" />
                     Tip
                   </Button>
                   <Button
                     variant="secondary"
                     size="icon"
-                    className="rounded-full"
+                    className="rounded-full bg-muted/50 hover:bg-muted/70"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
@@ -496,6 +657,13 @@ export default function Watch() {
           </div>
         </div>
       </main>
+
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        videoId={id || ""}
+        videoTitle={video?.title || ""}
+      />
 
       <TipModal
         open={tipModalOpen}
