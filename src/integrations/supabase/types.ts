@@ -47,6 +47,51 @@ export type Database = {
         }
         Relationships: []
       }
+      comment_logs: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          is_rewarded: boolean
+          is_valid: boolean
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          is_rewarded?: boolean
+          is_valid?: boolean
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          is_rewarded?: boolean
+          is_valid?: boolean
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_logs_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_logs_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
@@ -95,6 +140,42 @@ export type Database = {
           },
         ]
       }
+      daily_reward_limits: {
+        Row: {
+          comment_rewards_earned: number
+          created_at: string
+          date: string
+          id: string
+          updated_at: string
+          upload_rewards_earned: number
+          uploads_count: number
+          user_id: string
+          view_rewards_earned: number
+        }
+        Insert: {
+          comment_rewards_earned?: number
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          upload_rewards_earned?: number
+          uploads_count?: number
+          user_id: string
+          view_rewards_earned?: number
+        }
+        Update: {
+          comment_rewards_earned?: number
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          upload_rewards_earned?: number
+          uploads_count?: number
+          user_id?: string
+          view_rewards_earned?: number
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           comment_id: string | null
@@ -136,6 +217,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_statistics: {
+        Row: {
+          active_users: number
+          created_at: string
+          date: string
+          id: string
+          total_comments: number
+          total_rewards_distributed: number
+          total_users: number
+          total_videos: number
+          total_views: number
+          updated_at: string
+        }
+        Insert: {
+          active_users?: number
+          created_at?: string
+          date?: string
+          id?: string
+          total_comments?: number
+          total_rewards_distributed?: number
+          total_users?: number
+          total_videos?: number
+          total_views?: number
+          updated_at?: string
+        }
+        Update: {
+          active_users?: number
+          created_at?: string
+          date?: string
+          id?: string
+          total_comments?: number
+          total_rewards_distributed?: number
+          total_users?: number
+          total_videos?: number
+          total_views?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       playlist_videos: {
         Row: {
@@ -331,6 +451,47 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          reward_type: string
+          status: string
+          tx_hash: string | null
+          user_id: string
+          video_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          reward_type: string
+          status?: string
+          tx_hash?: string | null
+          user_id: string
+          video_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          reward_type?: string
+          status?: string
+          tx_hash?: string | null
+          user_id?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_transactions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           channel_id: string
@@ -474,6 +635,50 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      view_logs: {
+        Row: {
+          created_at: string
+          id: string
+          is_valid: boolean
+          session_id: string | null
+          user_id: string
+          video_duration_seconds: number | null
+          video_id: string
+          watch_percentage: number
+          watch_time_seconds: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          session_id?: string | null
+          user_id: string
+          video_duration_seconds?: number | null
+          video_id: string
+          watch_percentage?: number
+          watch_time_seconds?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          session_id?: string | null
+          user_id?: string
+          video_duration_seconds?: number | null
+          video_id?: string
+          watch_percentage?: number
+          watch_time_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "view_logs_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
             referencedColumns: ["id"]
           },
         ]
