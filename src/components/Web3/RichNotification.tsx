@@ -38,17 +38,15 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
     if (show) {
       // Create continuous looping ringtone using Web Audio API
       let audioContext: AudioContext | null = null;
-      let oscillator: OscillatorNode | null = null;
-      let gainNode: GainNode | null = null;
       let ringtoneInterval: NodeJS.Timeout | null = null;
       
-      // Play continuous ringtone pattern
+      // Play continuous ringtone pattern (NEW ringtone only)
       const playRingtone = () => {
         try {
           audioContext = new AudioContext();
-          gainNode = audioContext.createGain();
+          const gainNode = audioContext.createGain();
           gainNode.connect(audioContext.destination);
-          gainNode.gain.value = 0.3;
+          gainNode.gain.value = 0.4;
           
           // Create a pleasant notification sound pattern
           const playTone = (freq: number, duration: number, delay: number) => {
@@ -65,7 +63,7 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
             
             const startTime = audioContext.currentTime + delay;
             oscGain.gain.setValueAtTime(0, startTime);
-            oscGain.gain.linearRampToValueAtTime(0.5, startTime + 0.05);
+            oscGain.gain.linearRampToValueAtTime(0.6, startTime + 0.05);
             oscGain.gain.linearRampToValueAtTime(0, startTime + duration);
             
             osc.start(startTime);
@@ -85,7 +83,7 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
           // Play immediately
           playMelody();
           
-          // Loop the ringtone continuously
+          // Loop the ringtone continuously without interruption
           ringtoneInterval = setInterval(() => {
             playMelody();
           }, 1500);
@@ -102,25 +100,14 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
       if (musicUrl) {
         customAudio = new Audio(musicUrl);
         customAudio.volume = 0.5;
-        customAudio.loop = true; // Loop the custom music
+        customAudio.loop = true;
         customAudio.play().catch(err => console.error("Error playing music:", err));
       }
 
-      // Play cute baby Aliens Angel voice saying "RICH RICH RICH"
+      // Play "RICH RICH RICH" voice notification
       const speakNotification = () => {
-        const voiceGender = localStorage.getItem("voiceGender") || "female";
-        const voicePitch = localStorage.getItem("voicePitch") || "high";
-        
         const utterance = new SpeechSynthesisUtterance("RICH RICH RICH");
-        
-        if (voicePitch === "high") {
-          utterance.pitch = 2.0;
-        } else if (voicePitch === "medium") {
-          utterance.pitch = 1.5;
-        } else {
-          utterance.pitch = 1.0;
-        }
-        
+        utterance.pitch = 2.0; // High pitch cute voice
         utterance.rate = 0.9;
         utterance.volume = 1;
         utterance.lang = 'en-US';
@@ -128,9 +115,7 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
         const voices = window.speechSynthesis.getVoices();
         if (voices.length > 0) {
           const preferredVoice = voices.find(voice => 
-            voiceGender === "female" 
-              ? voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha")
-              : voice.name.toLowerCase().includes("male") || voice.name.toLowerCase().includes("alex")
+            voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha")
           );
           if (preferredVoice) {
             utterance.voice = preferredVoice;
@@ -157,7 +142,7 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
       }, 3000);
 
       // Trigger massive confetti celebration
-      const duration = 10000; // Extended duration
+      const duration = 10000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
@@ -197,7 +182,7 @@ export const RichNotification = ({ show, amount, token, count, onClose, userId }
         });
       }, 250);
 
-      // Auto close after extended duration
+      // Auto close after 10 seconds
       const timer = setTimeout(() => {
         clearInterval(confettiInterval);
         if (ringtoneInterval) clearInterval(ringtoneInterval);
