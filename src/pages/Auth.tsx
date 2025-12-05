@@ -136,7 +136,7 @@ export default function Auth() {
     }
   };
 
-  const handleWalletLogin = async () => {
+  const handleWalletLogin = async (walletType: 'MetaMask' | 'Bitget' = 'MetaMask') => {
     setWalletLoading(true);
     
     try {
@@ -221,7 +221,7 @@ export default function Auth() {
               .from('profiles')
               .update({ 
                 wallet_address: walletAddress,
-                wallet_type: 'MetaMask'
+                wallet_type: walletType
               })
               .eq('id', signUpData.user.id);
           }
@@ -304,12 +304,24 @@ export default function Auth() {
           <div className="mb-6 space-y-3">
             <Button
               type="button"
-              onClick={handleWalletLogin}
+              onClick={() => handleWalletLogin('MetaMask')}
               disabled={walletLoading}
               className="w-full bg-gradient-to-r from-[#F6851B] to-[#E2761B] hover:from-[#E2761B] hover:to-[#CD6116] text-white font-semibold py-6 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-[#F6851B]/30"
             >
-              <Wallet className="h-5 w-5" />
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" className="h-5 w-5" />
               {walletLoading ? "Connecting..." : "Connect with MetaMask"}
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => handleWalletLogin('Bitget')}
+              disabled={walletLoading}
+              className="w-full bg-gradient-to-r from-[#00D4AA] to-[#00B894] hover:from-[#00B894] hover:to-[#00A085] text-white font-semibold py-6 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 shadow-lg shadow-[#00D4AA]/30"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              {walletLoading ? "Connecting..." : "Connect with Bitget Wallet"}
             </Button>
 
             <Button
