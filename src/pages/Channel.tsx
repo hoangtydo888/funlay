@@ -11,9 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BackgroundMusicPlayer } from "@/components/BackgroundMusicPlayer";
 import { Copy, QrCode, Share2 } from "lucide-react";
 import { Honobar } from "@/components/Layout/Honobar";
-import { GlassmorphismStats } from "@/components/Profile/GlassmorphismStats";
-import { RewardClaimSection } from "@/components/Profile/RewardClaimSection";
-import { ProfileActionButtonsShiny } from "@/components/Profile/ProfileActionButtonsShiny";
+import { RewardStats } from "@/components/Profile/RewardStats";
 import { QRCodeSVG } from "qrcode.react";
 import {
   DropdownMenu,
@@ -63,7 +61,6 @@ export default function Channel() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [showQRCode, setShowQRCode] = useState(false);
-  const [showClaimModal, setShowClaimModal] = useState(false);
   const [selectedWalletAddress, setSelectedWalletAddress] = useState<string>("");
   const { user } = useAuth();
   const { toast } = useToast();
@@ -376,11 +373,11 @@ export default function Channel() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-indigo-50 to-purple-100 relative">
+    <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="pt-16 lg:pl-64 relative z-10">
+      <main className="pt-16 lg:pl-64">
         {profile?.music_enabled && profile.background_music_url && (
           <BackgroundMusicPlayer musicUrl={profile.background_music_url} />
         )}
@@ -400,53 +397,43 @@ export default function Channel() {
 
         {/* Channel Info */}
         <div className="max-w-7xl mx-auto px-6 py-6">
-          {/* Glassmorphism Stats */}
-          <GlassmorphismStats userId={channel.user_id} channelId={channel.id} />
-
-          {/* Reward Claim Section */}
-          <RewardClaimSection userId={channel.user_id} isOwnProfile={user?.id === channel.user_id} />
-
-          {/* Shiny Action Buttons - only show on own profile */}
-          {user?.id === channel.user_id && (
-            <ProfileActionButtonsShiny 
-              username={profile?.display_name || channel.name}
-              onClaimClick={() => setShowClaimModal(true)}
-            />
-          )}
+          {/* Reward Stats */}
+          <RewardStats userId={channel.user_id} walletAddress={profile?.wallet_address} />
+          
           <div className="flex items-start gap-6 mb-6">
             {profile?.avatar_url ? (
               <img
                 src={profile.avatar_url}
                 alt={channel.name}
-                className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-cyan-400 shadow-md"
+                className="w-20 h-20 rounded-full object-cover flex-shrink-0 border-2 border-primary shadow-lg"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-cyan-400 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+              <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-2xl flex-shrink-0">
                 {channel.name[0]}
               </div>
             )}
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              <h1 className="text-3xl font-bold text-foreground mb-1">
                 {channel.name}
               </h1>
-              <div className="flex items-center gap-3 mb-2 text-sm">
-                <p className="text-gray-500 font-medium">
+              <div className="flex items-center gap-4 mb-2">
+                <p className="text-muted-foreground font-semibold">
                   {(channel.subscriber_count || 0).toLocaleString()} người đăng ký
                 </p>
-                <p className="text-gray-500 font-medium">
-                  {videos.length} videos
+                <p className="text-muted-foreground font-semibold">
+                  {videos.length} video{videos.length !== 1 ? 's' : ''}
                 </p>
-                <p className="text-gray-500 font-medium">
+                <p className="text-muted-foreground font-semibold">
                   {videos.reduce((sum, v) => sum + (v.view_count || 0), 0).toLocaleString()} lượt xem
                 </p>
               </div>
               {channel.description && (
-                <p className="text-sm text-gray-600">{channel.description}</p>
+                <p className="text-sm text-foreground">{channel.description}</p>
               )}
               {profile?.bio && (
-                <div className="mt-3 p-3 bg-white border border-gray-200 rounded-xl shadow-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-amber-500 font-mono truncate flex-1">
+                <div className="mt-3 p-3 bg-card/50 border border-border rounded-lg">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-foreground whitespace-pre-wrap break-all flex-1 font-mono">
                       {renderBioWithHighlight(profile.bio)}
                     </p>
                     <div className="flex gap-1 flex-shrink-0">
@@ -454,7 +441,7 @@ export default function Channel() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                          className="h-8 w-8"
                           onClick={() => {
                             const detected = detectWalletAddress(profile.bio || "");
                             if (detected) {
@@ -469,7 +456,7 @@ export default function Channel() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                        className="h-8 w-8"
                         onClick={() => {
                           navigator.clipboard.writeText(profile.bio || "");
                           toast({
@@ -488,8 +475,8 @@ export default function Channel() {
             <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="rounded-full border-gray-300 hover:bg-gray-100">
-                    <Share2 className="h-4 w-4 text-gray-600" />
+                  <Button variant="outline" size="icon" className="rounded-full">
+                    <Share2 className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -515,8 +502,8 @@ export default function Channel() {
                 onClick={handleSubscribe}
                 className={`rounded-full px-6 ${
                   isSubscribed
-                    ? "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                    : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md"
+                    ? "bg-muted hover:bg-muted/80 text-foreground"
+                    : "bg-gradient-to-r from-cosmic-sapphire to-cosmic-cyan hover:from-cosmic-sapphire/90 hover:to-cosmic-cyan/90 text-foreground shadow-[0_0_30px_rgba(0,255,255,0.5)]"
                 }`}
               >
                 {isSubscribed ? "Đã đăng ký" : "Đăng ký"}
@@ -526,10 +513,10 @@ export default function Channel() {
 
           {/* Tabs */}
           <Tabs defaultValue="videos" className="w-full">
-            <TabsList className="mb-6 bg-white border border-gray-200 rounded-xl p-1">
-              <TabsTrigger value="videos" className="rounded-lg data-[state=active]:bg-gray-100">Videos</TabsTrigger>
-              <TabsTrigger value="playlists" className="rounded-lg data-[state=active]:bg-gray-100">Playlists</TabsTrigger>
-              <TabsTrigger value="about" className="rounded-lg data-[state=active]:bg-gray-100">About</TabsTrigger>
+            <TabsList className="mb-6">
+              <TabsTrigger value="videos">Videos</TabsTrigger>
+              <TabsTrigger value="playlists">Playlists</TabsTrigger>
+              <TabsTrigger value="about">About</TabsTrigger>
             </TabsList>
 
             <TabsContent value="videos">

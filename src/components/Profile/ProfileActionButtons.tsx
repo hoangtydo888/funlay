@@ -52,27 +52,34 @@ export const ProfileActionButtons = ({
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* KYC Button */}
-      <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
         <Button
           onClick={onKYCClick}
-          className={`w-full h-10 font-semibold text-sm ${
+          className={`w-full h-12 font-bold relative overflow-hidden ${
             isKYCVerified 
-              ? 'bg-green-50 border border-green-300 text-green-600 hover:bg-green-100' 
-              : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md'
+              ? 'bg-green-500/20 border-2 border-green-500 text-green-400 hover:bg-green-500/30' 
+              : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
           }`}
           variant={isKYCVerified ? "outline" : "default"}
         >
-          <span className="flex items-center gap-2">
+          {!isKYCVerified && (
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              animate={{ x: ['-100%', '100%'] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
             {isKYCVerified ? (
               <>
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-5 h-5" />
                 KYC Verified
               </>
             ) : (
               <>
-                <Shield className="w-4 h-4" />
+                <Shield className="w-5 h-5" />
                 KYC Now to Claim Rewards
               </>
             )}
@@ -81,22 +88,31 @@ export const ProfileActionButtons = ({
       </motion.div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         {buttons.map((button, index) => (
           <motion.div
             key={button.label}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.97 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ scale: 1.05, y: -3 }}
+            whileTap={{ scale: 0.95 }}
           >
             <Button
               onClick={button.onClick}
-              className={`w-full h-auto py-3 flex-col gap-1.5 bg-gradient-to-br ${button.gradient} text-white border-0 rounded-lg shadow-md`}
+              className={`w-full h-auto py-4 flex-col gap-2 bg-gradient-to-br ${button.gradient} text-white border-0 relative overflow-hidden`}
+              style={{
+                boxShadow: `0 4px 20px ${button.glow}40`,
+              }}
             >
-              <button.icon className="w-5 h-5" />
-              <span className="text-xs font-semibold">{button.label}</span>
+              {/* Shine effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                animate={{ x: ['-100%', '100%'] }}
+                transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
+              />
+              <button.icon className="w-6 h-6 relative z-10" />
+              <span className="text-xs font-bold relative z-10">{button.label}</span>
             </Button>
           </motion.div>
         ))}

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Medal, Award, Crown, Gem, Sparkles, Star } from "lucide-react";
+import { Medal, Award, Crown, Gem, Sparkles } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import confetti from "canvas-confetti";
 import { useEffect, useRef } from "react";
 
@@ -9,10 +10,10 @@ interface LuxuryHonobarProps {
 }
 
 const ACHIEVEMENT_TIERS = [
-  { name: "Bronze", threshold: 1_000_000, icon: Medal, color: "from-amber-700 via-orange-500 to-amber-600", glow: "#cd7f32", shadowColor: "rgba(205,127,50,0.6)" },
-  { name: "Silver", threshold: 3_000_000, icon: Award, color: "from-slate-300 via-gray-100 to-slate-400", glow: "#c0c0c0", shadowColor: "rgba(192,192,192,0.6)" },
-  { name: "Gold", threshold: 5_000_000, icon: Crown, color: "from-yellow-300 via-amber-400 to-yellow-500", glow: "#ffd700", shadowColor: "rgba(255,215,0,0.6)" },
-  { name: "Diamond", threshold: 10_000_000, icon: Gem, color: "from-cyan-200 via-blue-300 to-purple-300", glow: "#00e7ff", shadowColor: "rgba(0,231,255,0.6)" },
+  { name: "Bronze", threshold: 1_000_000, icon: Medal, color: "from-amber-600 to-orange-400", glow: "#cd7f32" },
+  { name: "Silver", threshold: 3_000_000, icon: Award, color: "from-gray-300 to-slate-400", glow: "#c0c0c0" },
+  { name: "Gold", threshold: 5_000_000, icon: Crown, color: "from-yellow-400 to-amber-500", glow: "#ffd700" },
+  { name: "Diamond", threshold: 10_000_000, icon: Gem, color: "from-cyan-300 to-blue-400", glow: "#00e7ff" },
 ];
 
 export const LuxuryHonobar = ({ totalRewards, previousTotal = 0 }: LuxuryHonobarProps) => {
@@ -23,6 +24,7 @@ export const LuxuryHonobar = ({ totalRewards, previousTotal = 0 }: LuxuryHonobar
   
   const prevTier = [...ACHIEVEMENT_TIERS].reverse().find(t => previousTotal >= t.threshold);
 
+  // Check for rank up
   useEffect(() => {
     if (currentTier && prevTier && currentTier.threshold > prevTier.threshold && !hasTriggeredRankUp.current) {
       hasTriggeredRankUp.current = true;
@@ -31,13 +33,15 @@ export const LuxuryHonobar = ({ totalRewards, previousTotal = 0 }: LuxuryHonobar
   }, [currentTier, prevTier]);
 
   const triggerRankUpCelebration = () => {
+    // Play victory sound
     const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3");
     audio.volume = 0.6;
     audio.play().catch(() => {});
 
+    // Full screen confetti
     const duration = 5000;
     const animationEnd = Date.now() + duration;
-    const colors = ['#ffd700', '#ff00e5', '#00e7ff', '#7a2bff', '#cd7f32', '#c0c0c0'];
+    const colors = ['#ffd700', '#ff00e5', '#00e7ff', '#7a2bff'];
 
     const frame = () => {
       confetti({
@@ -61,6 +65,7 @@ export const LuxuryHonobar = ({ totalRewards, previousTotal = 0 }: LuxuryHonobar
     };
     frame();
 
+    // Fireworks
     setTimeout(() => {
       confetti({
         particleCount: 150,
@@ -79,92 +84,146 @@ export const LuxuryHonobar = ({ totalRewards, previousTotal = 0 }: LuxuryHonobar
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-xl bg-white/80 backdrop-blur-sm border border-white/60 shadow-lg shadow-amber-200/30"
+      className="relative overflow-hidden rounded-2xl"
     >
-      {/* Golden accent bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500" />
+      {/* 3D metallic gold border */}
+      <div 
+        className="absolute inset-0 rounded-2xl"
+        style={{
+          background: 'linear-gradient(135deg, #ffd700 0%, #b8860b 25%, #ffd700 50%, #daa520 75%, #ffd700 100%)',
+          padding: '3px',
+        }}
+      >
+        <div className="w-full h-full rounded-2xl bg-gradient-to-br from-[hsl(var(--cosmic-purple)/0.9)] to-black" />
+      </div>
+
+      {/* Floating star particles background */}
+      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          >
+            <Sparkles className="w-3 h-3 text-[hsl(var(--cosmic-gold))]" />
+          </motion.div>
+        ))}
+      </div>
 
       {/* Content */}
-      <div className="relative z-10 p-4">
-        <div className="flex items-center gap-4">
+      <div className="relative z-10 p-6">
+        <div className="flex items-center gap-6">
           {/* Current tier icon */}
           <motion.div
-            className={`p-3 rounded-xl bg-gradient-to-br ${currentTier?.color || 'from-gray-400 to-gray-500'} shadow-md`}
-            whileHover={{ scale: 1.05 }}
+            className={`relative p-4 rounded-full bg-gradient-to-br ${currentTier?.color || 'from-gray-400 to-gray-600'}`}
+            animate={{
+              boxShadow: [
+                `0 0 20px ${currentTier?.glow || '#666'}`,
+                `0 0 40px ${currentTier?.glow || '#666'}`,
+                `0 0 20px ${currentTier?.glow || '#666'}`,
+              ],
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            <TierIcon className="w-8 h-8 text-white" />
+            <TierIcon className="w-10 h-10 text-white" />
           </motion.div>
 
           {/* Tier info */}
           <div className="flex-1">
-            <div 
-              className="text-xl font-bold"
+            <motion.div
+              className="text-3xl font-black"
               style={{
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                background: 'linear-gradient(135deg, #ffd700, #fff, #ffd700)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 20px rgba(255,215,0,0.5)',
               }}
             >
               {currentTier?.name || 'Newbie'}
+            </motion.div>
+            <div className="text-sm text-[hsl(var(--cosmic-gold))] font-medium">
+              Achievement Badge
             </div>
-            <div className="text-xs text-gray-500">Achievement Badge</div>
           </div>
 
           {/* Progress to next tier */}
           {nextTier && (
             <div className="text-right">
-              <div className="text-xs text-gray-500">Next: {nextTier.name}</div>
-              <div className="text-sm font-bold text-purple-600">
-                {((nextTier.threshold - totalRewards) / 1_000_000).toFixed(1)}M
+              <div className="text-xs text-muted-foreground mb-1">
+                Next: {nextTier.name}
+              </div>
+              <div className="text-sm font-bold text-[hsl(var(--cosmic-cyan))]">
+                {((nextTier.threshold - totalRewards) / 1_000_000).toFixed(2)}M CAMLY
               </div>
             </div>
           )}
         </div>
 
-        {/* Progress bar */}
+        {/* Progress bar with diamond sparkle */}
         {nextTier && (
-          <div className="mt-3">
-            <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+          <div className="mt-4 relative">
+            <div className="h-3 bg-black/50 rounded-full overflow-hidden border border-[hsl(var(--cosmic-gold)/0.3)]">
               <motion.div
-                className="h-full rounded-full"
+                className="h-full relative"
                 style={{
-                  background: `linear-gradient(90deg, ${currentTier?.glow || '#888'}, ${nextTier.glow})`,
+                  background: `linear-gradient(90deg, ${currentTier?.glow || '#666'}, ${nextTier.glow})`,
+                  width: `${progress}%`,
                 }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-              />
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              >
+                {/* Diamond sparkle effect */}
+                <motion.div
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6"
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <Gem className="w-full h-full text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                </motion.div>
+              </motion.div>
             </div>
-            <div className="flex justify-between text-xs mt-1 text-gray-500">
-              <span>{(totalRewards / 1_000_000).toFixed(1)}M</span>
-              <span>{(nextTier.threshold / 1_000_000).toFixed(0)}M</span>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>{(totalRewards / 1_000_000).toFixed(2)}M CAMLY</span>
+              <span>{(nextTier.threshold / 1_000_000).toFixed(0)}M CAMLY</span>
             </div>
           </div>
         )}
 
-        {/* Tier badges */}
-        <div className="flex justify-center gap-3 mt-3">
-          {ACHIEVEMENT_TIERS.map((tier) => {
+        {/* All tiers display */}
+        <div className="flex justify-center gap-4 mt-6">
+          {ACHIEVEMENT_TIERS.map((tier, i) => {
             const isUnlocked = totalRewards >= tier.threshold;
-            const isCurrent = currentTier?.name === tier.name;
             const Icon = tier.icon;
-            
             return (
               <motion.div
                 key={tier.name}
-                className="relative"
+                className={`p-2 rounded-lg ${isUnlocked ? `bg-gradient-to-br ${tier.color}` : 'bg-gray-800/50'}`}
                 whileHover={{ scale: 1.1 }}
+                animate={isUnlocked ? {
+                  boxShadow: [`0 0 10px ${tier.glow}`, `0 0 20px ${tier.glow}`, `0 0 10px ${tier.glow}`],
+                } : {}}
+                transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <div 
-                  className={`p-2 rounded-lg ${isUnlocked ? `bg-gradient-to-br ${tier.color}` : 'bg-gray-200'} shadow-sm`}
-                >
-                  <Icon className={`w-5 h-5 ${isUnlocked ? 'text-white' : 'text-gray-400'}`} />
-                </div>
-                {isCurrent && (
-                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-purple-500" />
-                )}
+                <Icon className={`w-6 h-6 ${isUnlocked ? 'text-white' : 'text-gray-600'}`} />
               </motion.div>
             );
           })}
