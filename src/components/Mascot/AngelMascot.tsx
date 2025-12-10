@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { AngelChat } from './AngelChat';
-import angelImage from '@/assets/angel-mascot.png';
 
 interface AngelMascotProps {
   onTipReceived?: boolean;
@@ -179,41 +178,29 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
         onMouseLeave={handleMouseLeave}
         whileHover={{ filter: 'brightness(1.2)', scale: 1.05 }}
       >
-        {/* Angel Image with CSS animations */}
+        {/* Angel Video - Pure transparent character */}
         <motion.div
-          className="w-full h-full relative"
-          animate={{
-            ...controls,
-            y: isPerching ? [0, -2, 0] : [0, -8, 0],
-          }}
-          transition={{
-            y: { duration: isPerching ? 1 : 2, repeat: Infinity, ease: "easeInOut" }
-          }}
+          className="w-full h-full"
+          animate={controls}
           style={{
             filter: isExcited 
-              ? 'drop-shadow(0 0 20px rgba(255, 182, 193, 0.8)) drop-shadow(0 0 30px rgba(148, 0, 211, 0.5)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.6))' 
-              : 'drop-shadow(0 0 12px rgba(255, 182, 193, 0.7)) drop-shadow(0 0 20px rgba(148, 0, 211, 0.4))'
+              ? 'drop-shadow(0 0 20px rgba(255, 182, 193, 0.8)) drop-shadow(0 0 30px rgba(148, 0, 211, 0.5)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.4))' 
+              : 'drop-shadow(0 0 10px rgba(255, 182, 193, 0.6)) drop-shadow(0 0 20px rgba(148, 0, 211, 0.3))'
           }}
         >
-          <img
-            src={angelImage}
-            alt="Angel Mascot"
-            className="w-full h-full object-contain"
-            style={{ background: 'transparent' }}
-          />
-          
-          {/* Wing flapping overlay effect */}
-          <motion.div 
-            className="absolute inset-0 pointer-events-none"
-            animate={{
-              scaleX: [1, 1.02, 1, 0.98, 1],
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover rounded-full"
+            style={{
+              background: 'transparent',
+              clipPath: 'ellipse(45% 48% at 50% 50%)',
             }}
-            transition={{
-              duration: 0.8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
+          >
+            <source src="/videos/angel-mascot-new.mp4" type="video/mp4" />
+          </video>
         </motion.div>
 
         {/* Speech Bubble */}
