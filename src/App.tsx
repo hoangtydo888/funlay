@@ -33,6 +33,8 @@ import { wagmiConfig } from '@/lib/web3Config';
 import { useCursorBeam } from './hooks/useCursorBeam';
 import { GlobalPaymentNotifications } from './components/Web3/GlobalPaymentNotifications';
 import { AngelMascot } from './components/Mascot/AngelMascot';
+import { MusicPlayerProvider } from './contexts/MusicPlayerContext';
+import { EnhancedMusicPlayer } from './components/Video/EnhancedMusicPlayer';
 
 const queryClient = new QueryClient();
 
@@ -93,9 +95,12 @@ const App = () => (
   <WagmiProvider config={wagmiConfig}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <MusicPlayerProvider>
+          <BrowserRouter>
+            <AppContent />
+            <EnhancedMusicPlayer />
+          </BrowserRouter>
+        </MusicPlayerProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </WagmiProvider>
