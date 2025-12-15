@@ -9,9 +9,10 @@ import { MeditatingAngel } from "@/components/Meditation/MeditatingAngel";
 import { AmbientSoundSelector } from "@/components/Meditation/AmbientSoundSelector";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, Clock, Infinity, Moon, Sparkles } from "lucide-react";
+import { Play, Clock, Infinity, Moon, Sparkles, Headphones } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMusicPlayer } from "@/contexts/MusicPlayerContext";
 
 interface Video {
   id: string;
@@ -35,6 +36,7 @@ const Meditate = () => {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const sleepTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  const { playQueue, toggleShuffle, shuffleEnabled, toggleRepeat } = useMusicPlayer();
 
   useEffect(() => {
     fetchMeditationVideos();
@@ -70,6 +72,32 @@ const Meditate = () => {
     setSelectedVideo(videos[0]);
     setShowPlayer(true);
   }, [videos, toast]);
+
+  // Play in background using global music player
+  const playInBackground = useCallback(() => {
+    if (videos.length === 0) {
+      toast({
+        title: "Chưa có video thiền định",
+        description: "Hãy upload video thiền định đầu tiên để bắt đầu!",
+      });
+      return;
+    }
+    
+    const tracks = videos.map(v => ({
+      id: v.id,
+      title: v.title,
+      thumbnail_url: v.thumbnail_url,
+      video_url: v.video_url,
+      duration: v.duration,
+      channelName: "Meditate with Father",
+    }));
+    
+    playQueue(tracks, 0);
+    toast({
+      title: "🎵 Đang phát nền",
+      description: "Nhạc thiền đang phát trong mini player. Bạn có thể duyệt web thoải mái!",
+    });
+  }, [videos, playQueue, toast]);
 
   const handleVideoEnd = useCallback(() => {
     if (isAutoPlaying && videos.length > 0) {
@@ -148,6 +176,14 @@ const Meditate = () => {
             >
               <Infinity className="w-6 h-6 mr-2 animate-spin" style={{ animationDuration: '3s' }} />
               Phát liên tục 24/24
+            </Button>
+
+            <Button
+              onClick={playInBackground}
+              className="bg-gradient-to-r from-cyan-500 via-teal-500 to-cyan-500 hover:from-cyan-600 hover:via-teal-600 hover:to-cyan-600 text-white px-6 py-6 text-lg rounded-full shadow-lg shadow-cyan-500/30 transition-all hover:scale-105"
+            >
+              <Headphones className="w-6 h-6 mr-2" />
+              Phát nền
             </Button>
 
             {/* Sleep Timer Options */}
