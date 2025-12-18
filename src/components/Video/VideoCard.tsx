@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "./ShareModal";
 import { AddToPlaylistModal } from "@/components/Playlist/AddToPlaylistModal";
+import { WatchLaterButton } from "./WatchLaterButton";
 
 interface VideoCardProps {
   thumbnail?: string;
@@ -139,6 +140,13 @@ export const VideoCard = ({
           >
             <Edit className="h-4 w-4" />
           </Button>
+        )}
+
+        {/* Watch Later button */}
+        {videoId && (
+          <div className="absolute top-2 right-24 opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <WatchLaterButton videoId={videoId} />
+          </div>
         )}
 
         {/* Add to Playlist button */}
