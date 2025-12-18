@@ -30,6 +30,9 @@ import NFTGallery from "./pages/NFTGallery";
 import Meditate from "./pages/Meditate";
 import CreateMusic from "./pages/CreateMusic";
 import Playlist from "./pages/Playlist";
+import WatchLater from "./pages/WatchLater";
+import WatchHistory from "./pages/WatchHistory";
+import Subscriptions from "./pages/Subscriptions";
 import { wagmiConfig } from '@/lib/web3Config';
 import { useCursorBeam } from './hooks/useCursorBeam';
 import { GlobalPaymentNotifications } from './components/Web3/GlobalPaymentNotifications';
@@ -77,12 +80,13 @@ function AppContent() {
         <Route path="/meditate" element={<Meditate />} />
         <Route path="/create-music" element={<CreateMusic />} />
         <Route path="/install" element={<InstallPWA />} />
+        {/* Watch Later, History, Subscriptions */}
+        <Route path="/watch-later" element={<WatchLater />} />
+        <Route path="/history" element={<WatchHistory />} />
+        <Route path="/subscriptions" element={<Subscriptions />} />
         {/* Temporary redirect routes for missing pages */}
         <Route path="/shorts" element={<Index />} />
-        <Route path="/subscriptions" element={<Index />} />
         <Route path="/library" element={<Index />} />
-        <Route path="/history" element={<Index />} />
-        <Route path="/watch-later" element={<Index />} />
         <Route path="/liked" element={<Index />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

@@ -615,6 +615,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          last_position_seconds: number | null
           rewarded: boolean
           updated_at: string
           user_id: string
@@ -624,6 +625,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          last_position_seconds?: number | null
           rewarded?: boolean
           updated_at?: string
           user_id: string
@@ -633,6 +635,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          last_position_seconds?: number | null
           rewarded?: boolean
           updated_at?: string
           user_id?: string
@@ -801,6 +804,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "wallet_transactions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watch_history: {
+        Row: {
+          completed: boolean | null
+          id: string
+          last_position_seconds: number | null
+          user_id: string
+          video_id: string
+          watch_time_seconds: number | null
+          watched_at: string
+        }
+        Insert: {
+          completed?: boolean | null
+          id?: string
+          last_position_seconds?: number | null
+          user_id: string
+          video_id: string
+          watch_time_seconds?: number | null
+          watched_at?: string
+        }
+        Update: {
+          completed?: boolean | null
+          id?: string
+          last_position_seconds?: number | null
+          user_id?: string
+          video_id?: string
+          watch_time_seconds?: number | null
+          watched_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watch_later: {
+        Row: {
+          added_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_later_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
             referencedRelation: "videos"

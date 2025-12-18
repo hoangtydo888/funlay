@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useVideoPlayback } from "@/contexts/VideoPlaybackContext";
+import { useWatchHistory } from "@/hooks/useWatchHistory";
 
 interface EnhancedVideoPlayerProps {
   videoUrl: string;
@@ -91,6 +92,8 @@ export function EnhancedVideoPlayer({
     isAutoplayEnabled 
   } = useVideoPlayback();
 
+  const { updateWatchProgress } = useWatchHistory();
+
   // Save settings to localStorage
   const saveSettings = useCallback((newSettings: Partial<PlayerSettings>) => {
     setSettings(prev => {
@@ -139,6 +142,8 @@ export function EnhancedVideoPlayer({
     progressIntervalRef.current = setInterval(() => {
       if (videoRef.current && isPlaying) {
         updateProgress(videoRef.current.currentTime * 1000);
+        // Also update watch history
+        updateWatchProgress(videoId, videoRef.current.currentTime, videoRef.current.duration);
       }
     }, 5000);
 
@@ -147,7 +152,7 @@ export function EnhancedVideoPlayer({
         clearInterval(progressIntervalRef.current);
       }
     };
-  }, [isPlaying, updateProgress]);
+  }, [isPlaying, updateProgress, updateWatchProgress, videoId]);
 
   // Keyboard shortcuts
   useEffect(() => {
