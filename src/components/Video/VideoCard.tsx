@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "./ShareModal";
 import { AddToPlaylistModal } from "@/components/Playlist/AddToPlaylistModal";
 import { WatchLaterButton } from "./WatchLaterButton";
+import { LazyImage } from "@/components/ui/LazyImage";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 
 interface VideoCardProps {
   thumbnail?: string;
@@ -40,6 +42,7 @@ export const VideoCard = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { lightTap, mediumTap } = useHapticFeedback();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [playlistModalOpen, setPlaylistModalOpen] = useState(false);
   const isOwner = user?.id === userId;
@@ -62,6 +65,7 @@ export const VideoCard = ({
   }
 
   const handlePlay = () => {
+    lightTap(); // Haptic feedback
     if (onPlay && videoId) {
       onPlay(videoId);
     }
@@ -69,16 +73,19 @@ export const VideoCard = ({
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
+    lightTap();
     navigate(`/studio?tab=content&edit=${videoId}`);
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
+    lightTap();
     setShareModalOpen(true);
   };
 
   const handleAddToPlaylist = (e: React.MouseEvent) => {
     e.stopPropagation();
+    lightTap();
     if (!user) {
       toast({
         title: "Yêu cầu đăng nhập",
@@ -109,11 +116,12 @@ export const VideoCard = ({
         <div className="absolute top-2/3 right-1/2 w-2 h-2 bg-glow-white rounded-full animate-[sparkle_0.9s_ease-in-out_infinite_0.6s] shadow-[0_0_15px_rgba(255,255,255,1)]" />
       </div>
 
-      {/* Thumbnail */}
+      {/* Thumbnail with Lazy Loading */}
       <div className="relative aspect-video overflow-hidden rounded-t-lg" onClick={handlePlay}>
-        <img
-          src={thumbnail}
-          alt={title}
+        <LazyImage
+          src={thumbnail || ''}
+          alt={title || 'Video thumbnail'}
+          aspectRatio="video"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
         

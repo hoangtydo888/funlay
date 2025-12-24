@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { AngelChat } from './AngelChat';
+import { FlyingCoins } from './FlyingCoins';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 
 interface MobileAngelMascotProps {
   onTipReceived?: boolean;
@@ -12,9 +14,12 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
   const [position, setPosition] = useState({ x: 20, y: 100 });
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isExcited, setIsExcited] = useState(false);
+  const [showFlyingCoins, setShowFlyingCoins] = useState(false);
+  const [coinOrigin, setCoinOrigin] = useState({ x: 0, y: 0 });
   const [currentAnimation, setCurrentAnimation] = useState<'flying' | 'sitting' | 'dancing' | 'waving'>('flying');
   const controls = useAnimation();
   const angelRef = useRef<HTMLDivElement>(null);
+  const { successFeedback, lightTap } = useHapticFeedback();
 
   // Size based on device
   const size = isMobile ? 70 : 90;
@@ -50,27 +55,43 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
     }
   }, [currentAnimation, isChatOpen, isMobile, size]);
 
-  // Listen for tip received events
+  // Listen for tip received events and trigger flying coins
   useEffect(() => {
     const handleTipReceived = () => {
       setIsExcited(true);
       setCurrentAnimation('dancing');
       
+      // Get angel position for coin origin
+      if (angelRef.current) {
+        const rect = angelRef.current.getBoundingClientRect();
+        setCoinOrigin({ 
+          x: rect.left + rect.width / 2, 
+          y: rect.top + rect.height / 2 
+        });
+      }
+      
+      // Trigger flying coins animation
+      setShowFlyingCoins(true);
+      successFeedback(); // Haptic feedback on reward
+      
       // Reset after celebration
       setTimeout(() => {
         setIsExcited(false);
         setCurrentAnimation('flying');
-      }, 5000);
+        setShowFlyingCoins(false);
+      }, 3000);
     };
 
     window.addEventListener('tip-received', handleTipReceived);
     window.addEventListener('payment-received', handleTipReceived);
+    window.addEventListener('camly-reward', handleTipReceived);
     
     return () => {
       window.removeEventListener('tip-received', handleTipReceived);
       window.removeEventListener('payment-received', handleTipReceived);
+      window.removeEventListener('camly-reward', handleTipReceived);
     };
-  }, []);
+  }, [successFeedback]);
 
   const triggerIdleAnimation = (type: string) => {
     controls.start({
@@ -81,12 +102,21 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
   };
 
   const handleClick = () => {
+    lightTap(); // Haptic feedback on tap
     setIsChatOpen(true);
     setCurrentAnimation('waving');
   };
 
   return (
     <>
+      {/* Flying Coins Animation */}
+      <FlyingCoins 
+        isActive={showFlyingCoins} 
+        count={12}
+        originX={coinOrigin.x}
+        originY={coinOrigin.y}
+      />
+      
       <motion.div
         ref={angelRef}
         className="fixed z-[9999] cursor-pointer select-none pointer-events-auto"

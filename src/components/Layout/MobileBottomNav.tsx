@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { UploadVideoModal } from "@/components/Video/UploadVideoModal";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -18,9 +19,12 @@ export const MobileBottomNav = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const { lightTap, mediumTap } = useHapticFeedback();
 
   const handleNavClick = (item: typeof navItems[0]) => {
+    lightTap(); // Haptic feedback on every nav tap
     if (item.isCreate) {
+      mediumTap(); // Stronger feedback for create button
       if (user) {
         setUploadModalOpen(true);
       } else {
