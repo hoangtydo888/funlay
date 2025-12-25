@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      blacklisted_wallets: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_permanent: boolean | null
+          reason: string | null
+          user_id: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          reason?: string | null
+          user_id?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          reason?: string | null
+          user_id?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       channels: {
         Row: {
           banner_url: string | null
@@ -534,8 +564,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approved_reward: number | null
           avatar_url: string | null
+          avatar_verified: boolean | null
           background_music_url: string | null
+          ban_reason: string | null
+          banned: boolean | null
+          banned_at: string | null
           bio: string | null
           created_at: string
           display_name: string | null
@@ -547,12 +582,18 @@ export type Database = {
           total_camly_rewards: number
           updated_at: string
           username: string
+          violation_level: number | null
           wallet_address: string | null
           wallet_type: string | null
         }
         Insert: {
+          approved_reward?: number | null
           avatar_url?: string | null
+          avatar_verified?: boolean | null
           background_music_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean | null
+          banned_at?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
@@ -564,12 +605,18 @@ export type Database = {
           total_camly_rewards?: number
           updated_at?: string
           username: string
+          violation_level?: number | null
           wallet_address?: string | null
           wallet_type?: string | null
         }
         Update: {
+          approved_reward?: number | null
           avatar_url?: string | null
+          avatar_verified?: boolean | null
           background_music_url?: string | null
+          ban_reason?: string | null
+          banned?: boolean | null
+          banned_at?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
@@ -581,8 +628,69 @@ export type Database = {
           total_camly_rewards?: number
           updated_at?: string
           username?: string
+          violation_level?: number | null
           wallet_address?: string | null
           wallet_type?: string | null
+        }
+        Relationships: []
+      }
+      reward_approvals: {
+        Row: {
+          admin_id: string | null
+          admin_note: string | null
+          amount: number
+          created_at: string | null
+          id: string
+          reviewed_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_note?: string | null
+          amount: number
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_note?: string | null
+          amount?: number
+          created_at?: string | null
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reward_bans: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          reason?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1143,11 +1251,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_user_reward: {
+        Args: { p_admin_id: string; p_note?: string; p_user_id: string }
+        Returns: number
+      }
+      ban_user_permanently: {
+        Args: { p_admin_id: string; p_reason?: string; p_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      reject_user_reward: {
+        Args: { p_admin_id: string; p_note?: string; p_user_id: string }
+        Returns: number
+      }
+      unban_user: {
+        Args: { p_admin_id: string; p_user_id: string }
         Returns: boolean
       }
     }
