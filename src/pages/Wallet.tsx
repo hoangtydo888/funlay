@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Wallet as WalletIcon, Send, History, Loader2, Copy, QrCode, ExternalLink, Search, Filter, ArrowLeft, Download } from "lucide-react";
+import { Wallet as WalletIcon, Send, History, Loader2, Copy, QrCode, ExternalLink, Search, Filter, ArrowLeft, Download, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { sendTip, getTransactionHistory } from "@/lib/tipping";
@@ -20,13 +20,14 @@ import { MultiTokenWallet } from "@/components/Web3/MultiTokenWallet";
 import { TokenSwap } from "@/components/Web3/TokenSwap";
 import { PriceChart } from "@/components/Web3/PriceChart";
 import { PortfolioTracker } from "@/components/Web3/PortfolioTracker";
+import { CAMLYPriceCard } from "@/components/Web3/CAMLYPriceCard";
 import { Badge } from "@/components/ui/badge";
 import { RichNotification } from "@/components/Web3/RichNotification";
 import camlyCoinLogo from "@/assets/camly-coin-rainbow.png";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { requestNotificationPermission, showLocalNotification } from "@/lib/pushNotifications";
-import { SUPPORTED_TOKENS } from "@/config/tokens";
+import { SUPPORTED_TOKENS, CAMLY_TOKEN_ADDRESS, CAMLY_DECIMALS } from "@/config/tokens";
 
 interface TokenBalance {
   symbol: string;
@@ -283,7 +284,7 @@ const Wallet = () => {
           if (token.address === "native") {
             const balance = await provider.getBalance(userAddress);
             const bnbBalance = ethers.formatEther(balance);
-            console.log(`BNB balance: ${bnbBalance}`);
+            console.log(`[Wallet] BNB balance: ${bnbBalance}`);
             newBalances.push({ ...token, balance: parseFloat(bnbBalance).toFixed(6) });
           } else {
             // ERC-20 token balance - fetch decimals from contract
@@ -302,11 +303,29 @@ const Wallet = () => {
               tokenContract.decimals()
             ]);
             
-            console.log(`${token.symbol} balance (raw):`, balance.toString());
-            console.log(`${token.symbol} decimals from contract:`, contractDecimals.toString());
+            console.log(`[Wallet] ${token.symbol} balance (raw):`, balance.toString());
+            console.log(`[Wallet] ${token.symbol} decimals from contract:`, contractDecimals.toString());
+            
+            // Debug logging for CAMLY specifically
+            if (token.symbol === "CAMLY") {
+              console.log(`[Wallet] ===== CAMLY DEBUG =====`);
+              console.log(`[Wallet] CAMLY Token Address:`, token.address);
+              console.log(`[Wallet] CAMLY Expected Address:`, CAMLY_TOKEN_ADDRESS);
+              console.log(`[Wallet] CAMLY Raw Balance:`, balance.toString());
+              console.log(`[Wallet] CAMLY Contract Decimals:`, contractDecimals.toString());
+              console.log(`[Wallet] CAMLY Config Decimals:`, CAMLY_DECIMALS);
+              console.log(`[Wallet] Address Match:`, token.address.toLowerCase() === CAMLY_TOKEN_ADDRESS.toLowerCase());
+            }
             
             const formattedBalance = ethers.formatUnits(balance, contractDecimals);
-            console.log(`${token.symbol} balance (formatted):`, formattedBalance);
+            console.log(`[Wallet] ${token.symbol} balance (formatted):`, formattedBalance);
+            
+            // Extra debug for CAMLY formatted balance
+            if (token.symbol === "CAMLY") {
+              console.log(`[Wallet] CAMLY Formatted Balance:`, formattedBalance);
+              console.log(`[Wallet] CAMLY Parsed Float:`, parseFloat(formattedBalance));
+              console.log(`[Wallet] ========================`);
+            }
             
             newBalances.push({ 
               ...token, 
@@ -315,7 +334,7 @@ const Wallet = () => {
             });
           }
         } catch (error) {
-          console.error(`Error fetching ${token.symbol} balance:`, error);
+          console.error(`[Wallet] Error fetching ${token.symbol} balance:`, error);
           newBalances.push({ ...token, balance: "0.000000" });
         }
       }
@@ -689,18 +708,45 @@ const Wallet = () => {
           </TabsList>
 
           <TabsContent value="balance">
-            <Card>
-              <CardHeader>
-                <CardTitle>Số dư ví</CardTitle>
-                <CardDescription>Tất cả token trong ví của bạn</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="space-y-4">
+              {/* CAMLY Price Card - Featured */}
+              <CAMLYPriceCard 
+                balance={balances.find(b => b.symbol === "CAMLY")?.balance || "0"}
+                onRefresh={() => fetchBalances(address)}
+                isRefreshing={loading}
+              />
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div>
+                    <CardTitle>Số dư ví</CardTitle>
+                    <CardDescription>Tất cả token trong ví của bạn</CardDescription>
                   </div>
-                ) : (
-                  <div className="space-y-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      fetchBalances(address);
+                      if (user) loadTransactionHistory();
+                      toast({
+                        title: "Đã làm mới",
+                        description: "Số dư đã được cập nhật",
+                      });
+                    }}
+                    disabled={loading}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    Làm mới
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
                     {balances.map((token) => (
                       <div
                         key={token.symbol}
@@ -736,10 +782,11 @@ const Wallet = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="send">
