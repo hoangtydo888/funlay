@@ -71,7 +71,14 @@ const AdminDashboard = () => {
             </h1>
             <p className="text-muted-foreground mt-2">Thống kê toàn nền tảng FUN Play</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={() => navigate('/admin/manage')} 
+              className="gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:opacity-90"
+            >
+              <Users className="w-4 h-4" />
+              Quản lý Users
+            </Button>
             <Button 
               onClick={() => navigate('/admin/reward-config')} 
               className="gap-2 bg-gradient-to-r from-[#00E7FF] to-[#7A2BFF] hover:opacity-90"
