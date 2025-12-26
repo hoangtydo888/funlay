@@ -37,6 +37,7 @@ import WatchLater from "./pages/WatchLater";
 import WatchHistory from "./pages/WatchHistory";
 import Subscriptions from "./pages/Subscriptions";
 import CAMLYPrice from "./pages/CAMLYPrice";
+import MusicDetail from "./pages/MusicDetail";
 import { wagmiConfig } from '@/lib/web3Config';
 import { useCursorBeam } from './hooks/useCursorBeam';
 import { GlobalPaymentNotifications } from './components/Web3/GlobalPaymentNotifications';
@@ -87,6 +88,7 @@ function AppContent() {
         <Route path="/nft-gallery" element={<NFTGallery />} />
         <Route path="/meditate" element={<Meditate />} />
         <Route path="/create-music" element={<CreateMusic />} />
+        <Route path="/music/:id" element={<MusicDetail />} />
         <Route path="/install" element={<InstallPWA />} />
         {/* Watch Later, History, Subscriptions */}
         <Route path="/watch-later" element={<WatchLater />} />
