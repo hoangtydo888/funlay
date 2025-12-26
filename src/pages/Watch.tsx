@@ -11,7 +11,8 @@ import { ThumbsUp, ThumbsDown, Share2, MoreHorizontal, Coins } from "lucide-reac
 import { TipModal } from "@/components/Tipping/TipModal";
 import { ShareModal } from "@/components/Video/ShareModal";
 import { MiniProfileCard } from "@/components/Video/MiniProfileCard";
-import { awardViewReward, awardLikeReward, logAndRewardComment, awardShareReward } from "@/lib/enhancedRewards";
+import { awardLikeReward } from "@/lib/enhancedRewards";
+import { useAutoReward } from "@/hooks/useAutoReward";
 import { RewardNotification } from "@/components/Rewards/RewardNotification";
 import { useVideoPlayback } from "@/contexts/VideoPlaybackContext";
 import { UpNextSidebar } from "@/components/Video/UpNextSidebar";
@@ -90,6 +91,7 @@ export default function Watch() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { createSession, nextVideo, previousVideo, isAutoplayEnabled, session, getUpNext } = useVideoPlayback();
+  const { awardCommentReward } = useAutoReward();
 
   // Swipe navigation for mobile
   const handleSwipeLeft = () => {
@@ -218,20 +220,7 @@ export default function Watch() {
         .update({ view_count: (data.view_count || 0) + 1 })
         .eq("id", id);
 
-      // Award CAMLY for viewing
-      if (user) {
-        const result = await awardViewReward(user.id, id);
-        if (result) {
-          setRewardNotif({ amount: result.amount, type: result.type as any, show: true });
-          if (result.milestone) {
-            toast({
-              title: "🎉 Chúc mừng! Milestone đạt được!",
-              description: `Bạn đã đạt ${result.milestone} CAMLY tổng rewards!`,
-              duration: 5000,
-            });
-          }
-        }
-      }
+      // View reward is now handled in EnhancedVideoPlayer based on watch time policy
     } catch (error: any) {
       toast({
         title: "Error loading video",
@@ -355,14 +344,22 @@ export default function Watch() {
       return;
     }
 
-    if (!newComment.trim()) return;
+    const wordCount = newComment.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (wordCount < 5) {
+      toast({
+        title: "Bình luận quá ngắn",
+        description: "Bình luận phải có ít nhất 5 từ để nhận thưởng CAMLY",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      const { data: commentData, error } = await supabase.from("comments").insert({
+      const { error } = await supabase.from("comments").insert({
         video_id: id,
         user_id: user.id,
         content: newComment,
-      }).select().single();
+      });
 
       if (error) throw error;
 
@@ -370,23 +367,11 @@ export default function Watch() {
       setNewComment("");
       fetchComments();
 
-      // Award CAMLY for commenting using secure server-side validation
-      const result = await logAndRewardComment(user.id, id!, commentData.id, commentContent);
-      if (result.rewarded) {
-        setRewardNotif({ amount: result.amount, type: "COMMENT", show: true });
-        toast({
-          title: "Comment posted",
-          description: `Your comment has been added (+${result.amount} CAMLY)`,
-        });
-      } else {
-        toast({
-          title: "Comment posted",
-          description: result.reason || "Your comment has been added",
-        });
-      }
+      // Award CAMLY for commenting using useAutoReward
+      await awardCommentReward(id!, commentContent);
     } catch (error: any) {
       toast({
-        title: "Error posting comment",
+        title: "Lỗi đăng bình luận",
         description: error.message,
         variant: "destructive",
       });

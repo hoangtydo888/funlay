@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { logAndRewardComment } from "@/lib/enhancedRewards";
+import { useAutoReward } from "@/hooks/useAutoReward";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { MessageCircle, Heart, MoreVertical, Trash2 } from "lucide-react";
@@ -41,6 +41,7 @@ export function MusicComments({ musicId, onCommentCountChange }: MusicCommentsPr
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { awardCommentReward } = useAutoReward();
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -111,10 +112,11 @@ export function MusicComments({ musicId, onCommentCountChange }: MusicCommentsPr
       return;
     }
 
-    if (!newComment.trim() || newComment.trim().length < 5) {
+    const wordCount = newComment.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (wordCount < 5) {
       toast({
         title: "Bình luận quá ngắn",
-        description: "Bình luận phải có ít nhất 5 ký tự",
+        description: "Bình luận phải có ít nhất 5 từ để nhận thưởng CAMLY",
         variant: "destructive",
       });
       return;
@@ -138,17 +140,12 @@ export function MusicComments({ musicId, onCommentCountChange }: MusicCommentsPr
       setNewComment("");
       fetchComments();
 
-      // Award CAMLY for commenting
-      const result = await logAndRewardComment(user.id, musicId, commentData.id, commentContent);
-      if (result.rewarded) {
+      // Award CAMLY for commenting using useAutoReward
+      const rewarded = await awardCommentReward(musicId, commentContent);
+      if (!rewarded) {
         toast({
           title: "Đã đăng bình luận!",
-          description: `+${result.amount} CAMLY`,
-        });
-      } else {
-        toast({
-          title: "Đã đăng bình luận!",
-          description: result.reason || "Cảm ơn bạn đã chia sẻ ý kiến",
+          description: "Cảm ơn bạn đã chia sẻ ý kiến",
         });
       }
     } catch (error: any) {

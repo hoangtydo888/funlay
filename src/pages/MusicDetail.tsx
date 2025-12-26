@@ -12,6 +12,7 @@ import { ShareModal } from "@/components/Video/ShareModal";
 import { DynamicMeta } from "@/components/SEO/DynamicMeta";
 import { MusicComments } from "@/components/Music/MusicComments";
 import { AddToMusicPlaylistModal } from "@/components/Music/AddToMusicPlaylistModal";
+import { useAutoReward } from "@/hooks/useAutoReward";
 import { 
   Play, 
   Pause, 
@@ -55,6 +56,7 @@ export default function MusicDetail() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { playTrack, currentTrack, isPlaying, togglePlay, queue, addToQueue } = useMusicPlayer();
+  const { awardLikeReward } = useAutoReward();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [track, setTrack] = useState<MusicTrack | null>(null);
@@ -198,7 +200,9 @@ export default function MusicDetail() {
           is_dislike: false,
         });
         setHasLiked(true);
-        toast({ title: "Đã thích bài hát!", description: "+1 CAMLY" });
+        
+        // Award CAMLY for liking
+        await awardLikeReward(id);
       }
     } catch (error: any) {
       toast({
