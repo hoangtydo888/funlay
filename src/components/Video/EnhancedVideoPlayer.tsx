@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useVideoPlayback } from "@/contexts/VideoPlaybackContext";
 import { useWatchHistory } from "@/hooks/useWatchHistory";
+import { useAutoReward } from "@/hooks/useAutoReward";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EnhancedVideoPlayerProps {
   videoUrl: string;
@@ -86,6 +88,8 @@ export function EnhancedVideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [isPiPActive, setIsPiPActive] = useState(false);
   const [showEndScreen, setShowEndScreen] = useState(false);
+  const [viewRewarded, setViewRewarded] = useState(false);
+  const watchTimeRef = useRef(0);
 
   const { 
     session, 
@@ -97,6 +101,64 @@ export function EnhancedVideoPlayer({
   } = useVideoPlayback();
 
   const { updateWatchProgress } = useWatchHistory();
+  const { awardViewReward } = useAutoReward();
+  const { user } = useAuth();
+
+  // Constants for view reward policy
+  const SHORT_VIDEO_THRESHOLD = 5 * 60; // 5 minutes in seconds
+  const LONG_VIDEO_MIN_WATCH = 5 * 60; // Must watch at least 5 minutes for long videos
+
+  // Track continuous watch time and award view reward
+  useEffect(() => {
+    let lastTime = 0;
+    let accumulatedTime = 0;
+
+    const checkViewReward = async () => {
+      if (viewRewarded || !user || !videoId) return;
+      
+      const videoDuration = duration;
+      const isShortVideo = videoDuration < SHORT_VIDEO_THRESHOLD;
+      
+      if (isShortVideo) {
+        // Short video: Must watch entire video (90%+ for edge cases)
+        if (currentTime >= videoDuration * 0.9) {
+          setViewRewarded(true);
+          await awardViewReward(videoId);
+        }
+      } else {
+        // Long video: Must watch at least 5 minutes continuously
+        if (watchTimeRef.current >= LONG_VIDEO_MIN_WATCH) {
+          setViewRewarded(true);
+          await awardViewReward(videoId);
+        }
+      }
+    };
+
+    // Track continuous watch time (not skipped)
+    if (isPlaying && duration > 0) {
+      const interval = setInterval(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        
+        const current = video.currentTime;
+        // Only count time if watching continuously (not seeking forward)
+        if (Math.abs(current - lastTime) < 2) {
+          watchTimeRef.current += 1;
+        }
+        lastTime = current;
+        
+        checkViewReward();
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying, duration, currentTime, viewRewarded, user, videoId, awardViewReward]);
+
+  // Reset reward state when video changes
+  useEffect(() => {
+    setViewRewarded(false);
+    watchTimeRef.current = 0;
+  }, [videoId]);
 
   // Save settings to localStorage
   const saveSettings = useCallback((newSettings: Partial<PlayerSettings>) => {
