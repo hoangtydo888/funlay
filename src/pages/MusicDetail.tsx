@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMusicPlayer, Track } from "@/contexts/MusicPlayerContext";
 import { ShareModal } from "@/components/Video/ShareModal";
 import { DynamicMeta } from "@/components/SEO/DynamicMeta";
+import { MusicComments } from "@/components/Music/MusicComments";
+import { AddToMusicPlaylistModal } from "@/components/Music/AddToMusicPlaylistModal";
 import { 
   Play, 
   Pause, 
@@ -58,6 +60,7 @@ export default function MusicDetail() {
   const [track, setTrack] = useState<MusicTrack | null>(null);
   const [loading, setLoading] = useState(true);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [playlistModalOpen, setPlaylistModalOpen] = useState(false);
   const [hasLiked, setHasLiked] = useState(false);
   const [relatedTracks, setRelatedTracks] = useState<MusicTrack[]>([]);
 
@@ -424,10 +427,10 @@ export default function MusicDetail() {
                         size="lg" 
                         variant="outline" 
                         className="gap-2"
-                        onClick={handleAddToQueue}
+                        onClick={() => setPlaylistModalOpen(true)}
                       >
                         <ListPlus className="w-5 h-5" />
-                        Thêm vào hàng đợi
+                        Thêm vào playlist
                       </Button>
                     </div>
                   </div>
@@ -442,6 +445,11 @@ export default function MusicDetail() {
                     </p>
                   </Card>
                 )}
+
+                {/* Comments Section */}
+                <Card className="p-6">
+                  <MusicComments musicId={track.id} />
+                </Card>
               </div>
 
               {/* Sidebar - Related Tracks */}
@@ -501,6 +509,14 @@ export default function MusicDetail() {
           contentTitle={track.title}
           thumbnailUrl={track.thumbnail_url || undefined}
           channelName={track.channels?.name}
+        />
+
+        {/* Add to Playlist Modal */}
+        <AddToMusicPlaylistModal
+          isOpen={playlistModalOpen}
+          onClose={() => setPlaylistModalOpen(false)}
+          trackId={track.id}
+          trackTitle={track.title}
         />
       </div>
     </>

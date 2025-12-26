@@ -38,6 +38,7 @@ import WatchHistory from "./pages/WatchHistory";
 import Subscriptions from "./pages/Subscriptions";
 import CAMLYPrice from "./pages/CAMLYPrice";
 import MusicDetail from "./pages/MusicDetail";
+import BrowseMusic from "./pages/BrowseMusic";
 import { wagmiConfig } from '@/lib/web3Config';
 import { useCursorBeam } from './hooks/useCursorBeam';
 import { GlobalPaymentNotifications } from './components/Web3/GlobalPaymentNotifications';
@@ -89,6 +90,7 @@ function AppContent() {
         <Route path="/meditate" element={<Meditate />} />
         <Route path="/create-music" element={<CreateMusic />} />
         <Route path="/music/:id" element={<MusicDetail />} />
+        <Route path="/browse/music" element={<BrowseMusic />} />
         <Route path="/install" element={<InstallPWA />} />
         {/* Watch Later, History, Subscriptions */}
         <Route path="/watch-later" element={<WatchLater />} />
