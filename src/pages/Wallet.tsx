@@ -406,6 +406,15 @@ const Wallet = () => {
     });
   };
 
+  // Detect if running inside wallet browser
+  const isInWalletBrowser = typeof window !== 'undefined' && (
+    window.ethereum?.isMetaMask || 
+    window.ethereum?.isBitKeep ||
+    window.ethereum?.isTrust ||
+    navigator.userAgent.includes('MetaMask') ||
+    navigator.userAgent.includes('BitKeep')
+  );
+
   if (!isConnected) {
     return (
       <div 
@@ -435,7 +444,45 @@ const Wallet = () => {
               {isConnecting ? "Đang kết nối..." : "Kết nối Ví"}
             </Button>
             
-            {/* Mobile Wallet Guide Button */}
+            {/* Deep Link Buttons for Mobile - Always show on mobile */}
+            {isMobile && !isInWalletBrowser && (
+              <div className="space-y-3">
+                <p className="text-sm text-center text-muted-foreground">
+                  Hoặc mở app ví trực tiếp:
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      const dappUrl = encodeURIComponent(window.location.href);
+                      window.location.href = `metamask://dapp/${window.location.host}`;
+                      // Fallback after delay
+                      setTimeout(() => {
+                        window.open('https://metamask.io/download/', '_blank');
+                      }, 2000);
+                    }}
+                  >
+                    🦊 MetaMask
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      window.location.href = `bitkeep://bkconnect?action=dapp&url=${encodeURIComponent(window.location.href)}`;
+                      // Fallback after delay
+                      setTimeout(() => {
+                        window.open('https://web3.bitget.com/en/wallet-download', '_blank');
+                      }, 2000);
+                    }}
+                  >
+                    💎 Bitget
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {/* Mobile Wallet Guide - Always show on mobile */}
             {isMobile && (
               <MobileWalletGuide 
                 open={showGuide}
@@ -448,6 +495,14 @@ const Wallet = () => {
                 }
               />
             )}
+            
+            {/* Info text */}
+            <p className="text-xs text-center text-muted-foreground mt-4">
+              {isMobile 
+                ? "💡 Trên mobile, bạn cần mở trang này trong app MetaMask hoặc Bitget Wallet"
+                : "💡 Trên desktop, cài extension MetaMask hoặc Bitget Wallet cho trình duyệt"
+              }
+            </p>
           </CardContent>
         </Card>
       </div>
