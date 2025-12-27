@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Wallet as WalletIcon, Send, History, Loader2, Copy, QrCode, ExternalLink, Search, Filter, ArrowLeft, Download, RefreshCw } from "lucide-react";
+import { Wallet as WalletIcon, Send, History, Loader2, Copy, QrCode, ExternalLink, Search, Filter, ArrowLeft, Download, RefreshCw, HelpCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { sendTip, getTransactionHistory } from "@/lib/tipping";
@@ -28,6 +28,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { requestNotificationPermission, showLocalNotification } from "@/lib/pushNotifications";
 import { SUPPORTED_TOKENS, CAMLY_TOKEN_ADDRESS, CAMLY_DECIMALS } from "@/config/tokens";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { MobileWalletGuide } from "@/components/Web3/MobileWalletGuide";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TokenBalance {
   symbol: string;
@@ -38,17 +41,27 @@ interface TokenBalance {
 }
 
 const Wallet = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [address, setAddress] = useState<string>("");
+  // Use the centralized wallet connection hook
+  const { 
+    isConnected, 
+    address, 
+    connectWallet, 
+    disconnectWallet, 
+    isLoading: isConnecting,
+    isInitialized,
+    refreshBalance
+  } = useWalletConnection();
+  
   const [balances, setBalances] = useState<TokenBalance[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { prices, loading: pricesLoading } = useCryptoPrices();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Transfer form state
   const [recipientAddress, setRecipientAddress] = useState("");
@@ -64,11 +77,14 @@ const Wallet = () => {
   const [receivedFilterToken, setReceivedFilterToken] = useState<string>("all");
   const [receivedSearchTerm, setReceivedSearchTerm] = useState("");
 
+  // Fetch balances when wallet is connected
   useEffect(() => {
-    checkWalletConnection();
+    if (isConnected && address) {
+      fetchBalances(address);
+    }
     // Request notification permission on load
     requestNotificationPermission();
-  }, []);
+  }, [isConnected, address]);
 
   // Real-time monitoring for incoming transactions
   useEffect(() => {
@@ -168,116 +184,15 @@ const Wallet = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [isConnected, address, user]);
 
-  const checkWalletConnection = async () => {
-    if (typeof window.ethereum !== "undefined") {
-      try {
-        const accounts = await window.ethereum.request({ method: "eth_accounts" });
-        if (accounts.length > 0) {
-          setAddress(accounts[0]);
-          setIsConnected(true);
-          await fetchBalances(accounts[0]);
-        }
-      } catch (error) {
-        console.error("Error checking wallet connection:", error);
-      }
-    }
-  };
-
-  const connectWallet = async () => {
-    if (isConnecting) return; // Prevent duplicate requests
-    
-    if (typeof window.ethereum === "undefined") {
-      toast({
-        title: "MetaMask không tìm thấy",
-        description: "Vui lòng cài đặt MetaMask để sử dụng ví",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsConnecting(true);
-    try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      
-      if (chainId !== "0x38") {
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x38" }],
-          });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [
-                {
-                  chainId: "0x38",
-                  chainName: "Binance Smart Chain",
-                  nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
-                  rpcUrls: ["https://bsc-dataseed.binance.org/"],
-                  blockExplorerUrls: ["https://bscscan.com/"],
-                },
-              ],
-            });
-          }
-        }
-      }
-
-      setAddress(accounts[0]);
-      setIsConnected(true);
-      await fetchBalances(accounts[0]);
-      
-      // Save wallet address to profile
-      if (user) {
-        await supabase
-          .from("profiles")
-          .update({ wallet_address: accounts[0] })
-          .eq("id", user.id);
-      }
-      
-      toast({
-        title: "Ví đã kết nối",
-        description: `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Kết nối thất bại",
-        description: error.message || "Không thể kết nối ví",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  // checkWalletConnection and connectWallet are now handled by useWalletConnection hook
 
   const fetchBalances = async (userAddress: string) => {
     setLoading(true);
     const newBalances: TokenBalance[] = [];
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      
-      // Verify we're on BSC mainnet
-      const network = await provider.getNetwork();
-      console.log("Current network:", network.chainId.toString());
-      
-      if (network.chainId !== BigInt(56)) {
-        console.warn("Not on BSC mainnet, switching...");
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x38" }],
-          });
-          // Wait a bit for network to switch
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
-          console.error("Failed to switch network:", error);
-        }
-      }
+      // Use JSON-RPC provider to work on mobile without window.ethereum
+      const provider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org/");
       
       for (const token of SUPPORTED_TOKENS) {
         try {
@@ -345,6 +260,7 @@ const Wallet = () => {
         newBalances.push({ ...token, balance: "0.000000" });
       });
     }
+
 
     // Check for balance increases (incoming funds)
     if (previousBalances.length > 0) {
@@ -476,14 +392,10 @@ const Wallet = () => {
     }
   };
 
-  const disconnectWallet = () => {
-    setIsConnected(false);
-    setAddress("");
+  // disconnectWallet is now handled by useWalletConnection hook
+  const handleDisconnect = async () => {
+    await disconnectWallet();
     setBalances([]);
-    toast({
-      title: "Đã ngắt kết nối",
-      description: "Ví của bạn đã được ngắt kết nối",
-    });
   };
 
   const copyAddress = () => {
@@ -509,10 +421,10 @@ const Wallet = () => {
             </div>
             <CardTitle>Kết nối Ví</CardTitle>
             <CardDescription>
-              Kết nối ví MetaMask để xem số dư và chuyển tiền
+              Kết nối ví Web3 (MetaMask, Bitget Wallet) để xem số dư và chuyển tiền
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <Button 
               onClick={connectWallet} 
               disabled={isConnecting}
@@ -520,8 +432,22 @@ const Wallet = () => {
               size="lg"
             >
               <WalletIcon className="mr-2 h-5 w-5" />
-              {isConnecting ? "Đang kết nối..." : "Kết nối MetaMask"}
+              {isConnecting ? "Đang kết nối..." : "Kết nối Ví"}
             </Button>
+            
+            {/* Mobile Wallet Guide Button */}
+            {isMobile && (
+              <MobileWalletGuide 
+                open={showGuide}
+                onOpenChange={setShowGuide}
+                trigger={
+                  <Button variant="outline" className="w-full" size="lg">
+                    <HelpCircle className="mr-2 h-5 w-5" />
+                    Hướng dẫn cài đặt ví Mobile
+                  </Button>
+                }
+              />
+            )}
           </CardContent>
         </Card>
       </div>
