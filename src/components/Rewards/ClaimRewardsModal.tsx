@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { toast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
+import { isMobileBrowser, isInWalletBrowser, getWalletDeepLink } from "@/lib/web3Config";
 
 interface ClaimRewardsModalProps {
   open: boolean;
@@ -31,21 +32,9 @@ const REWARD_TYPE_LABELS: Record<string, string> = {
   wallet_connect: "Kết nối ví",
 };
 
-// Mobile detection
-const isMobileBrowser = () => {
-  if (typeof window === 'undefined') return false;
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-};
-
-const isInWalletBrowser = () => {
-  if (typeof window === 'undefined') return false;
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes('metamask') || ua.includes('bitkeep') || ua.includes('trust');
-};
-
 export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps) => {
   const { user } = useAuth();
-  const { isConnected, address, connectWallet, isLoading: walletLoading } = useWalletConnection();
+  const { isConnected, address, connectWallet, connectWithMobileSupport, isLoading: walletLoading } = useWalletConnection();
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [claimSuccess, setClaimSuccess] = useState(false);
@@ -58,6 +47,10 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
   useEffect(() => {
     setIsMobile(isMobileBrowser());
     setInWalletApp(isInWalletBrowser());
+    console.log('[ClaimModal] Mobile detection:', { 
+      isMobile: isMobileBrowser(), 
+      inWalletApp: isInWalletBrowser() 
+    });
   }, []);
 
   useEffect(() => {
@@ -162,45 +155,30 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
     }
   };
 
-  // Handle mobile wallet connection with deep links
-  const handleMobileConnect = useCallback(async () => {
-    if (inWalletApp) {
-      // Already in wallet browser, just connect
-      await connectWallet();
-      return;
+  // Handle wallet connection - prioritize Web3Modal for best UX
+  const handleConnect = useCallback(async () => {
+    console.log('[ClaimModal] Connecting wallet...', { isMobile, inWalletApp });
+    
+    try {
+      // Use centralized mobile support from hook
+      await connectWithMobileSupport();
+    } catch (error) {
+      console.error('[ClaimModal] Connection failed:', error);
     }
+  }, [connectWithMobileSupport, isMobile, inWalletApp]);
 
-    if (isMobile) {
-      // On mobile browser, try deep link first
-      const currentUrl = encodeURIComponent(window.location.href);
-      const metamaskDeepLink = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-      
-      // Open MetaMask app
-      window.location.href = metamaskDeepLink;
-      
-      // Fallback to Web3Modal after delay
-      setTimeout(async () => {
-        try {
-          await connectWallet();
-        } catch (error) {
-          console.log('Web3Modal fallback failed:', error);
-        }
-      }, 1500);
-    } else {
-      // Desktop - use normal connect
-      await connectWallet();
-    }
-  }, [isMobile, inWalletApp, connectWallet]);
-
-  // Open wallet app directly
-  const openWalletApp = (wallet: 'metamask' | 'bitget') => {
-    const currentUrl = window.location.href;
-    if (wallet === 'metamask') {
-      window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-    } else {
-      window.location.href = `https://bkcode.vip/dapp/${encodeURIComponent(currentUrl)}`;
-    }
-  };
+  // Open specific wallet app via deep link
+  const openWalletApp = useCallback((wallet: 'metamask' | 'bitget' | 'trust') => {
+    console.log('[ClaimModal] Opening wallet app:', wallet);
+    
+    toast({
+      title: '🔗 Đang mở ví...',
+      description: `Chuyển đến ${wallet === 'metamask' ? 'MetaMask' : wallet === 'bitget' ? 'Bitget Wallet' : 'Trust Wallet'}`,
+    });
+    
+    const deepLink = getWalletDeepLink(wallet);
+    window.location.href = deepLink;
+  }, []);
 
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat("vi-VN").format(num);
@@ -343,7 +321,7 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
               {!isConnected ? (
                 <div className="space-y-3">
                   <Button
-                    onClick={handleMobileConnect}
+                    onClick={handleConnect}
                     disabled={walletLoading}
                     className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
                   >
@@ -378,6 +356,14 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
                           className="flex-1 text-xs"
                         >
                           💎 Bitget
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWalletApp('trust')}
+                          className="flex-1 text-xs"
+                        >
+                          🛡️ Trust
                         </Button>
                       </div>
                     </div>

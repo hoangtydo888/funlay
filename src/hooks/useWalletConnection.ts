@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getAccount, watchAccount, switchChain, disconnect, getBalance } from '@wagmi/core';
-import { wagmiConfig, BSC_CHAIN_ID, getWeb3Modal } from '@/lib/web3Config';
+import { wagmiConfig, BSC_CHAIN_ID, getWeb3Modal, isMobileBrowser, isInWalletBrowser, getWalletDeepLink } from '@/lib/web3Config';
 import { bsc } from '@wagmi/core/chains';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoReward } from '@/hooks/useAutoReward';
 import { formatEther } from 'viem';
-
 export type WalletType = 'metamask' | 'bitget' | 'unknown';
 
 interface UseWalletConnectionReturn {
@@ -20,6 +19,7 @@ interface UseWalletConnectionReturn {
   isInitialized: boolean;
   bnbBalance: string;
   connectWallet: () => Promise<void>;
+  connectWithMobileSupport: (preferredWallet?: 'metamask' | 'bitget' | 'trust') => Promise<void>;
   disconnectWallet: () => Promise<void>;
   switchToBSC: () => Promise<void>;
   refreshBalance: () => Promise<void>;
@@ -131,12 +131,25 @@ export const useWalletConnection = (): UseWalletConnectionReturn => {
   const connectWallet = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log('[Wallet] Starting connection...', {
+        isMobile: isMobileBrowser(),
+        inWalletApp: isInWalletBrowser(),
+      });
+      
       const modal = getWeb3Modal();
       if (modal) {
+        console.log('[Wallet] Opening Web3Modal...');
         await modal.open();
+      } else {
+        console.error('[Wallet] Web3Modal not initialized!');
+        toast({
+          title: 'Lỗi khởi tạo',
+          description: 'Web3Modal chưa được khởi tạo. Vui lòng reload trang.',
+          variant: 'destructive',
+        });
       }
     } catch (error: any) {
-      console.error('Wallet connection error:', error);
+      console.error('[Wallet] Connection error:', error);
       toast({
         title: 'Lỗi kết nối ví',
         description: error.message || 'Không thể kết nối ví. Vui lòng thử lại.',
@@ -146,6 +159,38 @@ export const useWalletConnection = (): UseWalletConnectionReturn => {
       setIsLoading(false);
     }
   }, [toast]);
+  
+  // Connect with mobile deep link support
+  const connectWithMobileSupport = useCallback(async (preferredWallet?: 'metamask' | 'bitget' | 'trust') => {
+    const isMobile = isMobileBrowser();
+    const inWallet = isInWalletBrowser();
+    
+    console.log('[Wallet] Mobile connect:', { isMobile, inWallet, preferredWallet });
+    
+    // If already in wallet browser, just connect directly
+    if (inWallet) {
+      console.log('[Wallet] In wallet browser, connecting directly...');
+      await connectWallet();
+      return;
+    }
+    
+    // On mobile, if user selected a specific wallet, use deep link
+    if (isMobile && preferredWallet) {
+      const deepLink = getWalletDeepLink(preferredWallet);
+      console.log('[Wallet] Opening deep link:', deepLink);
+      
+      toast({
+        title: '🔗 Đang mở ví...',
+        description: `Đang chuyển đến ${preferredWallet === 'metamask' ? 'MetaMask' : preferredWallet === 'bitget' ? 'Bitget Wallet' : 'Trust Wallet'}`,
+      });
+      
+      window.location.href = deepLink;
+      return;
+    }
+    
+    // Default: use Web3Modal (works on both mobile and desktop)
+    await connectWallet();
+  }, [connectWallet, toast]);
 
   // Disconnect wallet
   const disconnectWallet = useCallback(async () => {
@@ -246,6 +291,7 @@ export const useWalletConnection = (): UseWalletConnectionReturn => {
     isInitialized,
     bnbBalance,
     connectWallet,
+    connectWithMobileSupport,
     disconnectWallet,
     switchToBSC,
     refreshBalance,
