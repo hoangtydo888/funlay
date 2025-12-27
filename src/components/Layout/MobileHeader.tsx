@@ -1,4 +1,5 @@
-import { Search, Bell, Menu, Play, X, Plus, Upload, Music, FileText, Coins, Download } from "lucide-react";
+import { Search, Bell, Menu, X, Plus, Upload, Music, FileText, Coins, Download } from "lucide-react";
+import funplayLogo from "@/assets/funplay-logo.jpg";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,15 +104,14 @@ export const MobileHeader = ({ onMenuClick }: MobileHeaderProps) => {
             <Menu className="h-4 w-4" />
           </Button>
           <div
-            className="flex items-center gap-1 cursor-pointer"
+            className="flex items-center cursor-pointer"
             onClick={() => navigate("/")}
           >
-            <div className="bg-gradient-to-br from-primary to-primary/80 rounded-md p-1 shadow-lg">
-              <Play className="h-3.5 w-3.5 text-primary-foreground fill-primary-foreground" />
-            </div>
-            <span className="text-sm font-black tracking-tight bg-gradient-to-r from-[#00E7FF] via-[#00FFFF] to-[#00E7FF] bg-clip-text text-transparent hidden xs:inline">
-              FUN
-            </span>
+            <img 
+              src={funplayLogo} 
+              alt="FUN Play" 
+              className="h-8 w-8 rounded-full object-cover shadow-lg ring-2 ring-primary/30"
+            />
           </div>
         </div>
 
