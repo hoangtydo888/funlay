@@ -7,8 +7,8 @@ const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '';
 const metadata = {
   name: 'FUN PLAY',
   description: 'FUN PLAY - Web3 Video Platform',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://funplay.app',
-  icons: ['/images/camly-coin.png']
+  url: 'https://play.fun.rich',
+  icons: ['https://play.fun.rich/images/camly-coin.png']
 };
 
 // BSC Mainnet
