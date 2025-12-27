@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Coins, Sparkles, Gift, CheckCircle, Loader2, ExternalLink, Wallet } from "lucide-react";
+import { Coins, Sparkles, Gift, CheckCircle, Loader2, ExternalLink, Wallet, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
@@ -31,15 +31,34 @@ const REWARD_TYPE_LABELS: Record<string, string> = {
   wallet_connect: "Kết nối ví",
 };
 
+// Mobile detection
+const isMobileBrowser = () => {
+  if (typeof window === 'undefined') return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+};
+
+const isInWalletBrowser = () => {
+  if (typeof window === 'undefined') return false;
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.includes('metamask') || ua.includes('bitkeep') || ua.includes('trust');
+};
+
 export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps) => {
   const { user } = useAuth();
-  const { isConnected, address, connectWallet } = useWalletConnection();
+  const { isConnected, address, connectWallet, isLoading: walletLoading } = useWalletConnection();
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
   const [breakdown, setBreakdown] = useState<RewardBreakdown[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const [inWalletApp, setInWalletApp] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(isMobileBrowser());
+    setInWalletApp(isInWalletBrowser());
+  }, []);
 
   useEffect(() => {
     if (open && user) {
@@ -140,6 +159,46 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
       });
     } finally {
       setClaiming(false);
+    }
+  };
+
+  // Handle mobile wallet connection with deep links
+  const handleMobileConnect = useCallback(async () => {
+    if (inWalletApp) {
+      // Already in wallet browser, just connect
+      await connectWallet();
+      return;
+    }
+
+    if (isMobile) {
+      // On mobile browser, try deep link first
+      const currentUrl = encodeURIComponent(window.location.href);
+      const metamaskDeepLink = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+      
+      // Open MetaMask app
+      window.location.href = metamaskDeepLink;
+      
+      // Fallback to Web3Modal after delay
+      setTimeout(async () => {
+        try {
+          await connectWallet();
+        } catch (error) {
+          console.log('Web3Modal fallback failed:', error);
+        }
+      }, 1500);
+    } else {
+      // Desktop - use normal connect
+      await connectWallet();
+    }
+  }, [isMobile, inWalletApp, connectWallet]);
+
+  // Open wallet app directly
+  const openWalletApp = (wallet: 'metamask' | 'bitget') => {
+    const currentUrl = window.location.href;
+    if (wallet === 'metamask') {
+      window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+    } else {
+      window.location.href = `https://bkcode.vip/dapp/${encodeURIComponent(currentUrl)}`;
     }
   };
 
@@ -282,13 +341,48 @@ export const ClaimRewardsModal = ({ open, onOpenChange }: ClaimRewardsModalProps
 
               {/* Wallet Connection */}
               {!isConnected ? (
-                <Button
-                  onClick={connectWallet}
-                  className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
-                >
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Kết nối ví để claim
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleMobileConnect}
+                    disabled={walletLoading}
+                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600"
+                  >
+                    {walletLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Wallet className="h-4 w-4 mr-2" />
+                    )}
+                    Kết nối ví để claim
+                  </Button>
+                  
+                  {/* Mobile deep link buttons */}
+                  {isMobile && !inWalletApp && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-center text-muted-foreground">
+                        <Smartphone className="h-3 w-3 inline mr-1" />
+                        Hoặc mở trực tiếp trong ứng dụng ví:
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWalletApp('metamask')}
+                          className="flex-1 text-xs"
+                        >
+                          🦊 MetaMask
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWalletApp('bitget')}
+                          className="flex-1 text-xs"
+                        >
+                          💎 Bitget
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg bg-muted/50 text-sm">
