@@ -1,4 +1,5 @@
-import { Search, Video, Bell, Menu, Play, User as UserIcon, LogOut, Settings, Radio, SquarePen, Plus, FileVideo, List, Music } from "lucide-react";
+import { Search, Video, Bell, Menu, User as UserIcon, LogOut, Settings, Radio, SquarePen, Plus, FileVideo, List, Music } from "lucide-react";
+import funplayLogo from "@/assets/funplay-logo.jpg";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,13 +90,12 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
       >
         <Menu className="h-5 w-5" />
       </Button>
-        <div className="flex items-center gap-3 cursor-pointer hover:bg-accent/50 rounded-xl px-4 py-2 transition-all duration-300 border border-border/50 hover:border-primary/30 shadow-sm hover:shadow-md" onClick={() => navigate("/")}>
-          <div className="bg-gradient-to-br from-primary to-primary/80 rounded-lg px-3 py-2 flex items-center justify-center shadow-lg">
-            <Play className="h-6 w-6 text-white fill-white" />
-          </div>
-          <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-[#00E7FF] via-[#00FFFF] to-[#00E7FF] bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(0,231,255,0.8)] animate-pulse">
-            FUN Play
-          </span>
+        <div className="flex items-center cursor-pointer hover:scale-105 transition-transform duration-300" onClick={() => navigate("/")}>
+          <img 
+            src={funplayLogo} 
+            alt="FUN Play" 
+            className="h-12 w-12 rounded-full object-cover shadow-lg ring-2 ring-primary/30 hover:ring-primary/50 transition-all"
+          />
         </div>
       </div>
 
