@@ -290,7 +290,7 @@ const Index = () => {
           {user && <ContinueWatching />}
           
           {loadingVideos ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(8)].map((_, i) => (
                 <VideoCard key={`skeleton-${i}`} isLoading={true} />
               ))}
@@ -301,7 +301,7 @@ const Index = () => {
               <p className="text-sm text-muted-foreground mt-2">Hãy tải video đầu tiên lên!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {videos.map((video) => (
                 <VideoCard
                   key={video.id}
