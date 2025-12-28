@@ -131,8 +131,8 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
           className="w-full h-full"
           animate={controls}
           style={{
-            WebkitMaskImage: 'radial-gradient(ellipse 45% 55% at center 40%, black 40%, transparent 75%)',
-            maskImage: 'radial-gradient(ellipse 45% 55% at center 40%, black 40%, transparent 75%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 70% at center 45%, black 85%, transparent 100%)',
+            maskImage: 'radial-gradient(ellipse 60% 70% at center 45%, black 85%, transparent 100%)',
           }}
         >
           <video
