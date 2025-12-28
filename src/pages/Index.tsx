@@ -234,6 +234,12 @@ const Index = () => {
   return (
     <div 
       className="min-h-screen bg-background"
+      style={{
+        backgroundImage: 'url("/images/homepage-background.jpg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
       {...(isMobile ? pullHandlers : {})}
     >
       {/* Pull-to-refresh indicator */}
