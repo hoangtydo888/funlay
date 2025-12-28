@@ -157,8 +157,8 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
           className="w-full h-full"
           animate={controls}
           style={{
-            WebkitMaskImage: 'radial-gradient(ellipse 65% 75% at center 45%, black 70%, transparent 100%)',
-            maskImage: 'radial-gradient(ellipse 65% 75% at center 45%, black 70%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 50% 60% at center 45%, black 50%, transparent 85%)',
+            maskImage: 'radial-gradient(ellipse 50% 60% at center 45%, black 50%, transparent 85%)',
           }}
         >
           <video
@@ -198,28 +198,6 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
           )}
         </AnimatePresence>
 
-        {/* Floating sparkles */}
-        <motion.div
-          className="absolute -top-1 -left-1 text-xs"
-          animate={{ 
-            opacity: [0, 1, 0],
-            scale: [0.5, 1, 0.5],
-            rotate: [0, 180, 360]
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          ✨
-        </motion.div>
-        <motion.div
-          className="absolute -top-1 -right-1 text-xs"
-          animate={{ 
-            opacity: [0, 1, 0],
-            scale: [0.5, 1, 0.5],
-          }}
-          transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
-        >
-          💫
-        </motion.div>
 
         {/* Hearts when excited */}
         {isExcited && (
