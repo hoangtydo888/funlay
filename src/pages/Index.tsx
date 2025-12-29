@@ -242,7 +242,7 @@ const Index = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
-        filter: 'brightness(1.15) contrast(1.08) saturate(1.15)',
+        filter: 'brightness(1.25) contrast(1.12) saturate(1.2)',
       }}
     >
       {/* Wrapper để nội dung không bị ảnh hưởng bởi filter */}
