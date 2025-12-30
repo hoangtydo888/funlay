@@ -6,6 +6,7 @@ import { MobileHeader } from "@/components/Layout/MobileHeader";
 import { MobileBottomNav } from "@/components/Layout/MobileBottomNav";
 import { MobileDrawer } from "@/components/Layout/MobileDrawer";
 import { CategoryChips } from "@/components/Layout/CategoryChips";
+import { CompactHonobar } from "@/components/Layout/CompactHonobar";
 import { VideoCard } from "@/components/Video/VideoCard";
 import { ContinueWatching } from "@/components/Video/ContinueWatching";
 import { BackgroundMusicPlayer } from "@/components/BackgroundMusicPlayer";
@@ -274,6 +275,7 @@ const Index = () => {
           <MobileHeader onMenuClick={() => setIsMobileDrawerOpen(true)} />
           <MobileDrawer isOpen={isMobileDrawerOpen} onClose={() => setIsMobileDrawerOpen(false)} />
           <MobileBottomNav />
+          <CompactHonobar />
         </div>
         
         {/* Main content */}

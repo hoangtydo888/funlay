@@ -54,13 +54,13 @@ export const MobileBottomNav = () => {
                   isCreateButton
                     ? "relative"
                     : isActive
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-cyan-600 dark:text-cyan-400"
+                    : "text-muted-foreground hover:text-cyan-600 dark:hover:text-cyan-400"
                 )}
               >
                 {isCreateButton ? (
-                  <div className="w-10 h-8 bg-foreground rounded-lg flex items-center justify-center">
-                    <item.icon className="h-5 w-5 text-background" strokeWidth={2.5} />
+                  <div className="w-10 h-8 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-400/50">
+                    <item.icon className="h-5 w-5 text-white" strokeWidth={2.5} />
                   </div>
                 ) : (
                   <item.icon
