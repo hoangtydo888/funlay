@@ -33,8 +33,8 @@ export const CategoryChips = ({ selected = "Tất cả", onSelect }: CategoryChi
             size="sm"
             className={`rounded-full px-5 h-10 text-sm font-semibold transition-all duration-300 ${
               selected === category
-                ? "!bg-gradient-to-r !from-cyan-300/80 !to-cyan-400/80 !text-cyan-800 shadow-lg hover:shadow-xl hover:scale-105"
-                : "!bg-cyan-100/60 !text-cyan-600 border border-cyan-300/50 hover:!bg-cyan-200/70 hover:scale-105"
+                ? "!bg-cyan-400 !text-white shadow-lg hover:shadow-xl hover:scale-105 hover:!bg-cyan-500"
+                : "!bg-cyan-400/80 !text-white border border-cyan-300/50 hover:!bg-cyan-500 hover:scale-105"
             }`}
             onClick={() => onSelect?.(category)}
           >
