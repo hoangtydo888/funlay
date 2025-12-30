@@ -6,9 +6,7 @@ import { MobileHeader } from "@/components/Layout/MobileHeader";
 import { MobileBottomNav } from "@/components/Layout/MobileBottomNav";
 import { MobileDrawer } from "@/components/Layout/MobileDrawer";
 import { CategoryChips } from "@/components/Layout/CategoryChips";
-import { CompactHonobar } from "@/components/Layout/CompactHonobar";
 import { VideoCard } from "@/components/Video/VideoCard";
-import { LazyVideoCard } from "@/components/Video/LazyVideoCard";
 import { ContinueWatching } from "@/components/Video/ContinueWatching";
 import { BackgroundMusicPlayer } from "@/components/BackgroundMusicPlayer";
 import { PullToRefreshIndicator } from "@/components/Layout/PullToRefreshIndicator";
@@ -19,7 +17,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { getDefaultThumbnail } from "@/lib/defaultThumbnails";
+import homepageBackground from "@/assets/homepage-background.png";
 
 interface Video {
   id: string;
@@ -36,7 +34,6 @@ interface Video {
   profiles: {
     wallet_address: string | null;
     avatar_url: string | null;
-    username: string | null;
   };
 }
 
@@ -90,17 +87,16 @@ const Index = () => {
         const userIds = [...new Set(data.map(v => v.user_id))];
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, wallet_address, avatar_url, username")
+          .select("id, wallet_address, avatar_url")
           .in("id", userIds);
 
-        const profilesMap = new Map(profilesData?.map(p => [p.id, { wallet_address: p.wallet_address, avatar_url: p.avatar_url, username: p.username }]) || []);
+        const profilesMap = new Map(profilesData?.map(p => [p.id, { wallet_address: p.wallet_address, avatar_url: p.avatar_url }]) || []);
 
         const videosWithProfiles = data.map(video => ({
           ...video,
           profiles: {
             wallet_address: profilesMap.get(video.user_id)?.wallet_address || null,
             avatar_url: profilesMap.get(video.user_id)?.avatar_url || null,
-            username: profilesMap.get(video.user_id)?.username || null,
           },
         }));
 
@@ -157,7 +153,6 @@ const Index = () => {
                     profiles: {
                       wallet_address: payload.new.wallet_address,
                       avatar_url: payload.new.avatar_url,
-                      username: payload.new.username,
                     }
                   }
                 : video
@@ -209,10 +204,10 @@ const Index = () => {
   };
 
   const formatViews = (views: number | null) => {
-    if (!views) return "0 lượt xem";
-    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M lượt xem`;
-    if (views >= 1000) return `${(views / 1000).toFixed(1)}K lượt xem`;
-    return `${views} lượt xem`;
+    if (!views) return "0 views";
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M views`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K views`;
+    return `${views} views`;
   };
 
   const formatTimestamp = (dateString: string) => {
@@ -238,124 +233,121 @@ const Index = () => {
 
   return (
     <div 
-      className="min-h-screen bg-background relative"
-      style={{
-        backgroundImage: 'url("/images/homepage-background.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        imageRendering: 'crisp-edges',
-      }}
+      className="min-h-screen bg-background relative overflow-hidden"
+      {...(isMobile ? pullHandlers : {})}
     >
-      {/* Overlay for better contrast */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-cyan-50/5 to-white/10 dark:from-background/30 dark:via-cyan-950/10 dark:to-background/30" />
-      
-      {/* Main container */}
+      {/* Pull-to-refresh indicator */}
+      {isMobile && (
+        <PullToRefreshIndicator
+          isPulling={isPulling}
+          isRefreshing={isRefreshing}
+          pullProgress={pullProgress}
+          pullDistance={pullDistance}
+        />
+      )}
+      {/* Homepage background image - Enhanced 8K clarity */}
       <div 
-        className="min-h-screen relative z-10 touch-pan-y"
-        style={{ touchAction: 'pan-y' }}
-        {...(isMobile ? pullHandlers : {})}
-      >
-        {/* Pull-to-refresh indicator */}
-        {isMobile && (
-          <PullToRefreshIndicator
-            isPulling={isPulling}
-            isRefreshing={isRefreshing}
-            pullProgress={pullProgress}
-            pullDistance={pullDistance}
-          />
-        )}
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${homepageBackground})`,
+          backgroundPosition: 'bottom right',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'auto 80%',
+          opacity: 0.85,
+          filter: 'brightness(1.15) contrast(1.1) saturate(1.2)',
+          imageRendering: 'crisp-edges',
+          WebkitBackfaceVisibility: 'hidden',
+          backfaceVisibility: 'hidden',
+        }}
+      />
+      {/* Floating rainbow particles - Heavenly divine light rays */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-glow-sapphire rounded-full particle opacity-80 blur-sm shadow-[0_0_25px_rgba(0,102,255,0.9)]" />
+        <div className="absolute top-1/3 right-1/3 w-2.5 h-2.5 bg-glow-cyan rounded-full particle opacity-75 blur-sm shadow-[0_0_22px_rgba(0,255,255,0.9)]" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-1/4 left-1/3 w-3.5 h-3.5 bg-glow-magenta rounded-full particle opacity-85 blur-sm shadow-[0_0_28px_rgba(217,0,255,0.95)]" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-divine-rose-gold rounded-full particle opacity-90 blur-sm shadow-[0_0_20px_rgba(255,183,246,1)]" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 right-1/2 w-3 h-3 bg-glow-gold rounded-full particle opacity-80 blur-sm shadow-[0_0_24px_rgba(255,215,0,0.9)]" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-2/3 left-1/2 w-2.5 h-2.5 bg-glow-white rounded-full particle opacity-95 blur-sm shadow-[0_0_26px_rgba(255,255,255,1)]" style={{ animationDelay: '2.5s' }} />
+        <div className="absolute top-1/5 right-1/2 w-3 h-3 bg-glow-sapphire rounded-full particle opacity-85 blur-sm shadow-[0_0_25px_rgba(0,102,255,0.9)]" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute bottom-1/5 left-1/5 w-2 h-2 bg-glow-cyan rounded-full particle opacity-70 blur-sm shadow-[0_0_20px_rgba(0,255,255,0.8)]" style={{ animationDelay: '3.5s' }} />
+        <div className="absolute top-3/5 right-1/5 w-2.5 h-2.5 bg-glow-magenta rounded-full particle opacity-80 blur-sm shadow-[0_0_23px_rgba(217,0,255,0.9)]" style={{ animationDelay: '4s' }} />
+      </div>
 
-        {/* Desktop Header & Sidebar */}
-        <div className="hidden lg:block">
-          <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        </div>
+      {/* Desktop Header & Sidebar */}
+      <div className="hidden lg:block">
+        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      </div>
 
-        {/* Mobile Header & Drawer */}
-        <div className="lg:hidden">
-          <MobileHeader onMenuClick={() => setIsMobileDrawerOpen(true)} />
-          <MobileDrawer isOpen={isMobileDrawerOpen} onClose={() => setIsMobileDrawerOpen(false)} />
-          <MobileBottomNav />
-          <CompactHonobar />
-        </div>
-        
-        {/* Main content */}
-        <main className="pt-14 pb-20 lg:pb-0 lg:pl-64">
-          <CategoryChips />
-          
-          {!user && (
-            <div className="bg-muted/50 mx-4 mt-4 rounded-xl border border-border p-4">
-              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-foreground font-medium text-center sm:text-left">
-                  Đăng nhập để nhận phần thưởng CAMLY khi xem video!
-                </p>
-                <Button 
-                  onClick={() => navigate('/auth')}
-                  className="bg-cosmic-cyan hover:bg-cosmic-cyan/90 text-white"
-                >
-                  Đăng nhập / Đăng ký
-                </Button>
-              </div>
+      {/* Mobile Header & Drawer */}
+      <div className="lg:hidden">
+        <MobileHeader onMenuClick={() => setIsMobileDrawerOpen(true)} />
+        <MobileDrawer isOpen={isMobileDrawerOpen} onClose={() => setIsMobileDrawerOpen(false)} />
+        <MobileBottomNav />
+      </div>
+      
+      {/* Main content */}
+      <main className="pt-14 pb-20 lg:pb-0 lg:pl-64 relative z-10">
+        <CategoryChips />
+        {!user && (
+          <div className="glass-card mx-4 mt-4 rounded-xl border border-cosmic-magenta/50 p-4 shadow-[0_0_50px_rgba(217,0,255,0.5)]">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-foreground font-medium text-center sm:text-left">
+                Join <span className="text-transparent bg-clip-text bg-gradient-to-r from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta font-bold">FUN Play</span> to upload videos, subscribe to channels, and tip creators!
+              </p>
+              <Button 
+                onClick={() => navigate("/auth")} 
+                className="bg-gradient-to-r from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta hover:shadow-[0_0_70px_rgba(0,255,255,1)] transition-all duration-500 border border-glow-cyan"
+              >
+                Sign In / Sign Up
+              </Button>
             </div>
-          )}
-
+          </div>
+        )}
+        
+        <div className="p-6">
           {/* Continue Watching Section */}
           {user && <ContinueWatching />}
+          {loadingVideos ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <VideoCard key={`skeleton-${i}`} isLoading={true} />
+              ))}
+            </div>
+          ) : videos.length === 0 ? (
+            <div className="text-center py-20 glass-card rounded-2xl mx-auto max-w-2xl shadow-[0_0_60px_rgba(0,102,255,0.5)]">
+              <p className="text-foreground text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cosmic-sapphire via-cosmic-cyan to-cosmic-magenta">Chưa có video nào</p>
+              <p className="text-sm text-muted-foreground mt-2">Hãy tải video đầu tiên lên và khám phá vũ trụ âm nhạc đầy năng lượng tình yêu!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {videos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  videoId={video.id}
+                  userId={video.user_id}
+                  channelId={video.channels?.id}
+                  thumbnail={video.thumbnail_url || "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=225&fit=crop"}
+                  title={video.title}
+                  channel={video.channels?.name || "Unknown Channel"}
+                  avatarUrl={video.profiles?.avatar_url || undefined}
+                  views={formatViews(video.view_count)}
+                  timestamp={formatTimestamp(video.created_at)}
+                  onPlay={handlePlayVideo}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
 
-          <div className="p-4">
-            {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <VideoCard key={i} isLoading={true} />
-                ))}
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {videos.map((video, index) => (
-                  index < 6 ? (
-                    <VideoCard
-                      key={video.id}
-                      videoId={video.id}
-                      thumbnail={video.thumbnail_url || undefined}
-                      title={video.title}
-                      channel={video.channels?.name || video.profiles?.username || "Unknown"}
-                      avatarUrl={video.profiles?.avatar_url || undefined}
-                      channelId={video.channels?.id}
-                      userId={video.user_id}
-                      views={formatViews(video.view_count)}
-                      timestamp={formatTimestamp(video.created_at)}
-                      onPlay={handlePlayVideo}
-                    />
-                  ) : (
-                    <LazyVideoCard
-                      key={video.id}
-                      videoId={video.id}
-                      thumbnail={video.thumbnail_url || undefined}
-                      title={video.title}
-                      channel={video.channels?.name || video.profiles?.username || "Unknown"}
-                      avatarUrl={video.profiles?.avatar_url || undefined}
-                      channelId={video.channels?.id}
-                      userId={video.user_id}
-                      views={formatViews(video.view_count)}
-                      timestamp={formatTimestamp(video.created_at)}
-                      onPlay={handlePlayVideo}
-                    />
-                  )
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
-
-        {/* Background Music Player */}
-        {user && (
-          <BackgroundMusicPlayer 
-            musicUrl={currentMusicUrl} 
-            autoPlay={true}
-          />
-        )}
-      </div>
+      {/* Background Music Player */}
+      {user && (
+        <BackgroundMusicPlayer 
+          musicUrl={currentMusicUrl} 
+          autoPlay={true}
+        />
+      )}
     </div>
   );
 };

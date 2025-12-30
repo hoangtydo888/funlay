@@ -23,7 +23,7 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
   const { successFeedback, lightTap } = useHapticFeedback();
   const { playCoinShower, angelFly, celebrate, pop } = useSoundEffects();
 
-  // Size based on device - original small sizes
+  // Size based on device
   const size = isMobile ? 70 : 90;
 
   // Random idle animations
@@ -136,8 +136,6 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
         style={{ 
           width: `${size}px`, 
           height: `${size + 20}px`,
-          overflow: 'hidden',
-          background: 'transparent',
         }}
         initial={{ x: 20, y: 100 }}
         animate={{ 
@@ -154,15 +152,14 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
         onClick={handleClick}
         whileTap={{ scale: 1.2 }}
       >
-        {/* Angel Video - Pure character, no frame */}
+        {/* Angel Video - Enhanced background removal */}
         <motion.div
           className="w-full h-full"
           animate={controls}
           style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
-            WebkitMaskComposite: 'destination-in',
-            maskComposite: 'intersect',
+            filter: isExcited 
+              ? 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))' 
+              : 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.3))'
           }}
         >
           <video
@@ -170,18 +167,17 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
             loop
             muted
             playsInline
-            className="w-full h-full"
+            className="w-full h-full object-contain"
             style={{
+              mixBlendMode: 'lighten',
               background: 'transparent',
-              transform: 'scale(2.5) translateY(-5%)',
-              objectFit: 'cover',
-              objectPosition: 'center top',
-              filter: isExcited 
-                ? 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.5))' 
-                : 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.3))',
+              filter: 'brightness(1.0) contrast(1.1) saturate(1.1)',
+              WebkitMaskImage: 'radial-gradient(ellipse 65% 75% at center 50%, black 25%, transparent 80%)',
+              maskImage: 'radial-gradient(ellipse 65% 75% at center 50%, black 25%, transparent 80%)',
             }}
           >
-            <source src="/videos/angel-bay.mp4" type="video/mp4" />
+            <source src="/videos/angel-mascot-original.mp4" type="video/mp4" />
+            <source src="/videos/angel-mascot-new.mp4" type="video/mp4" />
           </video>
         </motion.div>
 
@@ -201,6 +197,28 @@ export const MobileAngelMascot: React.FC<MobileAngelMascotProps> = ({ onTipRecei
           )}
         </AnimatePresence>
 
+        {/* Floating sparkles */}
+        <motion.div
+          className="absolute -top-1 -left-1 text-xs"
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0.5, 1, 0.5],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >
+          ✨
+        </motion.div>
+        <motion.div
+          className="absolute -top-1 -right-1 text-xs"
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0.5, 1, 0.5],
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+        >
+          💫
+        </motion.div>
 
         {/* Hearts when excited */}
         {isExcited && (

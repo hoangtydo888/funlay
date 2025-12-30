@@ -23,40 +23,20 @@ export const useCryptoPrices = () => {
 
   useEffect(() => {
     const fetchPrices = async () => {
-      const newPrices: CryptoPrices = {
-        // Fallback prices in case API fails
-        BNB: 700,
-        USDT: 1,
-        BTC: 95000,
-        CAMLY: 0.0001
-      };
-      
       try {
-        // Fetch CoinGecko prices with timeout
+        // Fetch CoinGecko prices
         const ids = Object.values(COINGECKO_IDS).filter(Boolean).join(",");
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-        
-        try {
-          const response = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
-            { signal: controller.signal }
-          );
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            const data = await response.json();
-            Object.entries(COINGECKO_IDS).forEach(([symbol, id]) => {
-              if (data[id]?.usd) {
-                newPrices[symbol] = data[id].usd;
-              }
-            });
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
+        );
+        const data = await response.json();
+
+        const newPrices: CryptoPrices = {};
+        Object.entries(COINGECKO_IDS).forEach(([symbol, id]) => {
+          if (data[id]?.usd) {
+            newPrices[symbol] = data[id].usd;
           }
-        } catch (fetchError) {
-          // Silently fail and use fallback prices - don't log error to avoid error popup
-          console.log("[CryptoPrices] CoinGecko unavailable, using fallback prices");
-        }
+        });
 
         // Fetch CAMLY price from PancakeSwap
         try {
@@ -68,13 +48,15 @@ export const useCryptoPrices = () => {
           console.log("[CAMLY Price] Fetching price for token:", CAMLY_TOKEN_ADDRESS);
           console.log("[CAMLY Price] Using decimals:", CAMLY_DECIMALS);
           
+          let camlyPrice = 0;
+          
           // Try direct path: CAMLY -> USDT
           try {
             const directPath = [CAMLY_TOKEN_ADDRESS, USDT_ADDRESS];
             const amounts = await router.getAmountsOut(amountIn, directPath);
             const usdtOut = ethers.formatUnits(amounts[1], 18); // USDT has 18 decimals on BSC
-            newPrices["CAMLY"] = parseFloat(usdtOut);
-            console.log("[CAMLY Price] Direct path success, price:", newPrices["CAMLY"]);
+            camlyPrice = parseFloat(usdtOut);
+            console.log("[CAMLY Price] Direct path success, price:", camlyPrice);
           } catch (directError) {
             console.log("[CAMLY Price] Direct path failed, trying WBNB path...");
             
@@ -83,21 +65,26 @@ export const useCryptoPrices = () => {
               const wbnbPath = [CAMLY_TOKEN_ADDRESS, WBNB_ADDRESS, USDT_ADDRESS];
               const amounts = await router.getAmountsOut(amountIn, wbnbPath);
               const usdtOut = ethers.formatUnits(amounts[2], 18);
-              newPrices["CAMLY"] = parseFloat(usdtOut);
-              console.log("[CAMLY Price] WBNB path success, price:", newPrices["CAMLY"]);
+              camlyPrice = parseFloat(usdtOut);
+              console.log("[CAMLY Price] WBNB path success, price:", camlyPrice);
             } catch (wbnbError) {
-              console.log("[CAMLY Price] WBNB path also failed, using fallback");
+              console.log("[CAMLY Price] WBNB path also failed:", wbnbError);
+              // Use a reasonable fallback price
+              camlyPrice = 0.0001;
+              console.log("[CAMLY Price] Using fallback price:", camlyPrice);
             }
           }
+          
+          newPrices["CAMLY"] = camlyPrice;
         } catch (error) {
-          console.log("[CAMLY Price] PancakeSwap unavailable, using fallback price");
+          console.error("[CAMLY Price] Error fetching from PancakeSwap:", error);
+          // Fallback price if PancakeSwap fails completely
+          newPrices["CAMLY"] = 0.0001;
         }
 
         setPrices(newPrices);
       } catch (error) {
-        // Silent fail - use fallback prices
-        console.log("[CryptoPrices] Using fallback prices due to network error");
-        setPrices(newPrices);
+        console.error("Error fetching crypto prices:", error);
       } finally {
         setLoading(false);
       }
@@ -105,8 +92,8 @@ export const useCryptoPrices = () => {
 
     fetchPrices();
     
-    // Refresh prices every 2 minutes instead of 1 minute to reduce API calls
-    const interval = setInterval(fetchPrices, 120000);
+    // Refresh prices every 60 seconds
+    const interval = setInterval(fetchPrices, 60000);
     
     return () => clearInterval(interval);
   }, []);

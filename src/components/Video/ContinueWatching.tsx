@@ -3,7 +3,6 @@ import { Play, X } from 'lucide-react';
 import { useWatchHistory } from '@/hooks/useWatchHistory';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { getDefaultThumbnail } from '@/lib/defaultThumbnails';
 
 export const ContinueWatching = () => {
   const { continueWatching, removeFromHistory } = useWatchHistory();
@@ -48,7 +47,7 @@ export const ContinueWatching = () => {
               {/* Thumbnail */}
               <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
                 <img
-                  src={item.video.thumbnail_url || getDefaultThumbnail(item.video_id)}
+                  src={item.video.thumbnail_url || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=225&fit=crop'}
                   alt={item.video.title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

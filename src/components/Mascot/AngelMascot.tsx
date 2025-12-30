@@ -103,12 +103,10 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
       <motion.div
         ref={angelRef}
         className="fixed z-[9999] cursor-pointer select-none pointer-events-auto"
-      style={{ 
-        width: '90px', 
-        height: '120px',
-        overflow: 'hidden',
-        background: 'transparent',
-      }}
+        style={{ 
+          width: '90px', 
+          height: '120px',
+        }}
         initial={{ x: 100, y: 100 }}
         animate={{ 
           x: isChatOpen ? window.innerWidth / 2 - 45 : position.x, 
@@ -131,10 +129,9 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
           className="w-full h-full"
           animate={controls}
           style={{
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%), linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
-            WebkitMaskComposite: 'destination-in',
-            maskComposite: 'intersect',
+            filter: isExcited 
+              ? 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 40px rgba(255, 215, 0, 0.4))' 
+              : 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.3))'
           }}
         >
           <video
@@ -142,18 +139,17 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
             loop
             muted
             playsInline
-            className="w-full h-full"
+            className="w-full h-full object-contain"
             style={{
+              mixBlendMode: 'lighten',
               background: 'transparent',
-              transform: 'scale(2.5) translateY(-5%)',
-              objectFit: 'cover',
-              objectPosition: 'center top',
-              filter: isExcited 
-                ? 'drop-shadow(0 0 12px rgba(255, 215, 0, 0.5))' 
-                : 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.3))',
+              filter: 'brightness(1.0) contrast(1.1) saturate(1.1)',
+              WebkitMaskImage: 'radial-gradient(ellipse 65% 75% at center 50%, black 25%, transparent 80%)',
+              maskImage: 'radial-gradient(ellipse 65% 75% at center 50%, black 25%, transparent 80%)',
             }}
           >
-            <source src="/videos/angel-bay.mp4" type="video/mp4" />
+            <source src="/videos/angel-mascot-original.mp4" type="video/mp4" />
+            <source src="/videos/angel-mascot-new.mp4" type="video/mp4" />
           </video>
         </motion.div>
 
@@ -203,6 +199,29 @@ export const AngelMascot: React.FC<AngelMascotProps> = ({ onTipReceived }) => {
           </>
         )}
 
+        {/* Floating sparkles around angel */}
+        <motion.div
+          className="absolute -top-1 -left-1 text-sm"
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0.5, 1, 0.5],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+        >
+          ✨
+        </motion.div>
+        <motion.div
+          className="absolute -top-1 -right-1 text-xs"
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0.5, 1, 0.5],
+            rotate: [0, -180, -360]
+          }}
+          transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+        >
+          💫
+        </motion.div>
       </motion.div>
 
       {/* Chat Window */}

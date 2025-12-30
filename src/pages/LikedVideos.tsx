@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getDefaultThumbnail } from "@/lib/defaultThumbnails";
 
 interface Video {
   id: string;
@@ -144,7 +143,7 @@ const LikedVideos = () => {
       <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-full bg-gradient-to-br from-cosmic-cyan to-glow-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)]">
+          <div className="p-3 rounded-full bg-gradient-to-br from-red-500 to-pink-500">
             <Heart className="h-6 w-6 text-white" fill="white" />
           </div>
           <div>
@@ -178,7 +177,7 @@ const LikedVideos = () => {
                 key={video.id}
                 videoId={video.id}
                 title={video.title}
-                thumbnail={video.thumbnail_url || getDefaultThumbnail(video.id)}
+                thumbnail={video.thumbnail_url || "/placeholder.svg"}
                 channel={video.channels?.name || "Unknown"}
                 channelId={video.channels?.id}
                 views={String(video.view_count || 0)}

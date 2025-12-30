@@ -22,9 +22,9 @@ export const MobileBottomNav = () => {
   const { lightTap, mediumTap } = useHapticFeedback();
 
   const handleNavClick = (item: typeof navItems[0]) => {
-    lightTap();
+    lightTap(); // Haptic feedback on every nav tap
     if (item.isCreate) {
-      mediumTap();
+      mediumTap(); // Stronger feedback for create button
       if (user) {
         setUploadModalOpen(true);
       } else {
@@ -39,7 +39,7 @@ export const MobileBottomNav = () => {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-gradient-to-r from-cyan-50/95 via-white to-cyan-50/95 dark:from-cyan-950/90 dark:via-background dark:to-cyan-950/90 backdrop-blur-lg border-t border-cyan-200/50 dark:border-cyan-800/30 z-50 lg:hidden safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-lg border-t border-border z-50 lg:hidden safe-area-bottom">
         <div className="flex items-center justify-around h-full px-2">
           {navItems.map((item) => {
             const isActive = item.href ? location.pathname === item.href : false;
@@ -50,31 +50,29 @@ export const MobileBottomNav = () => {
                 key={item.label}
                 onClick={() => handleNavClick(item)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-full transition-all duration-200",
+                  "flex flex-col items-center justify-center gap-0.5 min-w-[64px] h-full transition-all duration-200",
                   isCreateButton
                     ? "relative"
                     : isActive
-                    ? "text-cyan-600 dark:text-cyan-400"
-                    : "text-muted-foreground hover:text-cyan-600 dark:hover:text-cyan-400"
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {isCreateButton ? (
-                  <div className="w-10 h-8 bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-400/50 animate-bounce-subtle animate-glow-pulse">
-                    <item.icon className="h-5 w-5 text-white" strokeWidth={2.5} />
+                  <div className="w-12 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-lg flex items-center justify-center shadow-lg shadow-primary/30">
+                    <item.icon className="h-6 w-6 text-primary-foreground" />
                   </div>
                 ) : (
                   <item.icon
                     className={cn(
-                      "h-5 w-5 transition-all",
-                      isActive ? "fill-current" : ""
+                      "h-6 w-6 transition-all",
+                      isActive && "scale-110"
                     )}
-                    strokeWidth={isActive ? 2.5 : 1.5}
                   />
                 )}
                 <span
                   className={cn(
-                    "text-[10px]",
-                    isActive ? "font-medium" : "font-normal",
+                    "text-[10px] font-medium",
                     isCreateButton && "mt-0.5"
                   )}
                 >

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { getDefaultThumbnail } from '@/lib/defaultThumbnails';
 
 interface SubscribedChannel {
   id: string;
@@ -214,7 +213,7 @@ const Subscriptions = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cosmic-cyan to-glow-cyan flex items-center justify-center shadow-[0_0_20px_rgba(0,255,255,0.5)]">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cosmic-sapphire to-cosmic-magenta flex items-center justify-center">
                 <Users className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -296,7 +295,7 @@ const Subscriptions = () => {
                         >
                           <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
                             <img
-                              src={video.thumbnail_url || getDefaultThumbnail(video.id)}
+                              src={video.thumbnail_url || 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=225&fit=crop'}
                               alt={video.title}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />

@@ -22,7 +22,7 @@ export const CompactHonobar = () => {
         animate={{ scale: 1, opacity: 1 }}
         className="absolute top-3 right-3 z-20"
       >
-        <div className="grid grid-cols-3 gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-cyan-50/90 via-white to-cyan-50/90 dark:from-cyan-950/90 dark:via-background dark:to-cyan-950/90 backdrop-blur-md border border-cyan-300/30 dark:border-cyan-700/30 shadow-lg">
+        <div className="grid grid-cols-3 gap-1.5 p-2.5 rounded-xl bg-white/90 backdrop-blur-md border border-[#00E7FF]/30 shadow-lg">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="animate-pulse bg-gradient-to-br from-[#00E7FF]/20 to-[#FFD700]/20 rounded-lg h-12 w-16" />
           ))}
@@ -42,7 +42,7 @@ export const CompactHonobar = () => {
         {/* Subtle glow */}
         <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#00E7FF]/20 to-[#FFD700]/20 blur-md" />
         
-        <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-cyan-50/95 via-white to-cyan-50/95 dark:from-cyan-950/90 dark:via-background dark:to-cyan-950/90 backdrop-blur-md border border-cyan-300/40 dark:border-cyan-700/40 shadow-[0_4px_20px_rgba(0,231,255,0.2)]">
+        <div className="relative p-2.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#00E7FF]/40 shadow-[0_4px_20px_rgba(0,231,255,0.2)]">
           {/* Header */}
           <div className="flex items-center justify-center gap-1.5 mb-2 pb-1.5 border-b border-[#00E7FF]/20">
             <Crown className="w-3 h-3 text-[#FFD700]" />

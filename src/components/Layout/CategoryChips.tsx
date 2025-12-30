@@ -23,26 +23,26 @@ interface CategoryChipsProps {
 
 export const CategoryChips = ({ selected = "Tất cả", onSelect }: CategoryChipsProps) => {
   return (
-    <div className="sticky top-14 z-30 border-b border-border bg-background">
+    <div className="border-b border-border bg-background">
       <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-3 px-4 py-3">
           {categories.map((category) => (
-          <Button
-            key={category}
-            variant="ghost"
-            size="sm"
-            className={`rounded-full px-5 h-10 text-sm font-semibold transition-all duration-300 ${
-              selected === category
-                ? "!bg-cyan-400 !text-white shadow-lg shadow-cyan-400/50 hover:shadow-xl hover:shadow-cyan-400/70 hover:scale-105 hover:!bg-cyan-500"
-                : "!bg-cyan-400/80 !text-white border border-cyan-300/50 hover:!bg-cyan-500 hover:scale-105 hover:shadow-lg hover:shadow-cyan-400/40"
-            }`}
-            onClick={() => onSelect?.(category)}
-          >
+            <Button
+              key={category}
+              variant={selected === category ? "default" : "secondary"}
+              size="sm"
+              className={`rounded-full px-4 h-8 text-sm font-medium transition-all border border-cyan-400/30 ${
+                selected === category
+                  ? "bg-gradient-to-r from-[#00E5FF] via-[#00B8D4] to-[#0091EA] text-white shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:shadow-[0_0_25px_rgba(0,229,255,0.6)]"
+                  : "bg-gradient-to-r from-[#00E5FF]/70 via-[#00B8D4]/70 to-[#0091EA]/70 text-white/90 hover:from-[#00E5FF] hover:via-[#00B8D4] hover:to-[#0091EA] hover:text-white hover:shadow-[0_0_15px_rgba(0,229,255,0.3)]"
+              }`}
+              onClick={() => onSelect?.(category)}
+            >
               {category}
             </Button>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" className="invisible" />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

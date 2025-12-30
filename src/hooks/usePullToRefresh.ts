@@ -63,21 +63,9 @@ export const usePullToRefresh = ({
       const pull = Math.min(diff * resistance, maxPull);
       setPullDistance(pull);
 
-      // Prevent default scroll behavior when actively pulling refresh
-      if (pull > 10 && isPullingRef.current) {
-        try {
-          e.preventDefault();
-          e.stopPropagation();
-        } catch (err) {
-          // Ignore passive event listener errors
-        }
-      }
-    } else {
-      // Reset pulling state if scrolling normally
-      if (isPullingRef.current && diff < 0) {
-        isPullingRef.current = false;
-        setIsPulling(false);
-        setPullDistance(0);
+      // Prevent default scroll behavior when pulling
+      if (pull > 10) {
+        e.preventDefault();
       }
     }
   }, [enabled, isRefreshing, isAtTop, maxPull]);
