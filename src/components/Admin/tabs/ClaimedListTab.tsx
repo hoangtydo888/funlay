@@ -71,7 +71,8 @@ const ClaimedListTab = () => {
   }, []);
 
   const completedClaims = useMemo(() => {
-    return claims.filter((c) => c.status === "completed" || c.tx_hash);
+    // Sửa filter: status phải là "success" VÀ có tx_hash
+    return claims.filter((c) => c.status === "success" && c.tx_hash);
   }, [claims]);
 
   const filteredClaims = useMemo(() => {
