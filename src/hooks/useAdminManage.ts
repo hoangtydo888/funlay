@@ -238,6 +238,26 @@ export const useAdminManage = () => {
     }
   };
 
+  const unapproveReward = async (userId: string, note?: string) => {
+    if (!user) return false;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase.rpc("unapprove_user_reward", {
+        p_user_id: userId,
+        p_admin_id: user.id,
+        p_note: note || null,
+      });
+      if (error) throw error;
+      await fetchUsers();
+      return true;
+    } catch (error) {
+      console.error("Error unapproving reward:", error);
+      return false;
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return {
     users,
     loading,
@@ -250,6 +270,7 @@ export const useAdminManage = () => {
     unbanUser,
     approveReward,
     rejectReward,
+    unapproveReward,
     refetch: fetchUsers,
   };
 };
