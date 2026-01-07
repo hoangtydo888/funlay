@@ -37,6 +37,7 @@ const AdminManage = () => {
     unbanUser,
     approveReward,
     rejectReward,
+    unapproveReward,
   } = useAdminManage();
 
   useEffect(() => {
@@ -176,7 +177,7 @@ const AdminManage = () => {
             <UserReviewTab users={users} onBan={banUser} getSuspicionScore={getSuspicionScore} loading={actionLoading} />
           </TabsContent>
           <TabsContent value="approved" className="mt-4">
-            <ApprovedListTab users={users} />
+            <ApprovedListTab users={users} onUnapprove={unapproveReward} loading={actionLoading} />
           </TabsContent>
           <TabsContent value="claimed" className="mt-4">
             <ClaimedListTab />

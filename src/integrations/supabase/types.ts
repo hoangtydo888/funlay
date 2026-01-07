@@ -1294,6 +1294,10 @@ export type Database = {
         Args: { p_admin_id: string; p_note?: string; p_user_id: string }
         Returns: number
       }
+      unapprove_user_reward: {
+        Args: { p_admin_id: string; p_note?: string; p_user_id: string }
+        Returns: number
+      }
       unban_user: {
         Args: { p_admin_id: string; p_user_id: string }
         Returns: boolean
