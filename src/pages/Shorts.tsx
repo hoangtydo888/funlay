@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { ShareModal } from '@/components/Video/ShareModal';
+import { ShortsCommentSheet } from '@/components/Video/ShortsCommentSheet';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ShortVideo {
@@ -39,12 +40,14 @@ const ShortsVideoItem = ({
   isActive, 
   onLike,
   onShare,
+  onComment,
   isLiked 
 }: { 
   video: ShortVideo; 
   isActive: boolean;
   onLike: () => void;
   onShare: () => void;
+  onComment: () => void;
   isLiked: boolean;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -172,7 +175,7 @@ const ShortsVideoItem = ({
 
         {/* Comment */}
         <button 
-          onClick={(e) => { e.stopPropagation(); navigate(`/watch/${video.id}`); }}
+          onClick={(e) => { e.stopPropagation(); onComment(); }}
           className="flex flex-col items-center"
         >
           <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
@@ -232,6 +235,7 @@ export default function Shorts() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [shareVideoId, setShareVideoId] = useState<string | null>(null);
+  const [commentVideoId, setCommentVideoId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch short videos
@@ -394,6 +398,7 @@ export default function Shorts() {
               isLiked={likedVideos.has(video.id)}
               onLike={() => handleLike(video.id)}
               onShare={() => setShareVideoId(video.id)}
+              onComment={() => setCommentVideoId(video.id)}
             />
           </div>
         ))}
@@ -425,6 +430,14 @@ export default function Shorts() {
           onClose={() => setShareVideoId(null)}
         />
       )}
+
+      {/* Comment Sheet */}
+      <ShortsCommentSheet
+        videoId={commentVideoId || ''}
+        isOpen={!!commentVideoId}
+        onClose={() => setCommentVideoId(null)}
+        commentCount={videos.find(v => v.id === commentVideoId)?.comment_count || 0}
+      />
     </div>
   );
 }
