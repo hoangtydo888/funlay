@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { VIDEO_CATEGORY_OPTIONS, VideoSubCategory } from "@/lib/videoCategories";
-import { Upload as UploadIcon, CheckCircle, Plus, Music, AlertCircle, Clock } from "lucide-react";
+import { Upload as UploadIcon, CheckCircle, Plus, Music, AlertCircle, Clock, Smartphone, Check, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface MeditationPlaylist {
   id: string;
@@ -36,6 +37,12 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
   const [subCategory, setSubCategory] = useState<VideoSubCategory | "">("");
   const [isDuplicate, setIsDuplicate] = useState(false);
   
+  // Shorts video metadata
+  const [isShorts, setIsShorts] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<string>("");
+  const [isValidShorts, setIsValidShorts] = useState(false);
+  
   // Playlist management (for meditation categories)
   const [playlists, setPlaylists] = useState<MeditationPlaylist[]>([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>("");
@@ -48,6 +55,40 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
   const navigate = useNavigate();
 
   const isMeditation = subCategory === 'light_meditation' || subCategory === 'sound_therapy' || subCategory === 'mantra';
+
+  // Validate video metadata for Shorts
+  const validateVideoForShorts = (file: File) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+    
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      const aspectRatioValue = height / width; // Dọc > 1, Ngang < 1
+      
+      setVideoDuration(duration);
+      setVideoAspectRatio(`${width}x${height}`);
+      
+      // Shorts: aspect ratio dọc (height > width) và duration < 360s (6 phút)
+      const isValid = aspectRatioValue >= 1.2 && duration < 360;
+      setIsValidShorts(isValid);
+      
+      URL.revokeObjectURL(video.src);
+    };
+  };
+
+  // Watch for video file changes to validate for Shorts
+  useEffect(() => {
+    if (videoFile && isShorts) {
+      validateVideoForShorts(videoFile);
+    } else {
+      setVideoDuration(0);
+      setVideoAspectRatio("");
+      setIsValidShorts(false);
+    }
+  }, [videoFile, isShorts]);
 
   // Fetch user's meditation playlists when meditation checkbox is checked
   useEffect(() => {
@@ -139,8 +180,8 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
       return;
     }
 
-    // Check if category is selected
-    if (!subCategory) {
+    // Check if category is selected (not required for Shorts)
+    if (!isShorts && !subCategory) {
       toast({
         title: "Chưa chọn danh mục",
         description: "Vui lòng chọn danh mục cho video",
@@ -428,8 +469,9 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl,
         is_public: true,
-        category: isMeditation ? "meditation" : "general",
-        sub_category: subCategory,
+        category: isShorts ? "shorts" : (isMeditation ? "meditation" : "general"),
+        sub_category: isShorts ? "shorts" : subCategory,
+        duration: videoDuration || null,
         approval_status: "pending",
       }).select("id").single();
 
@@ -460,6 +502,10 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         setThumbnailFile(null);
         setYoutubeUrl("");
         setSubCategory("");
+        setIsShorts(false);
+        setVideoDuration(0);
+        setVideoAspectRatio("");
+        setIsValidShorts(false);
         setSelectedPlaylistId("");
         setShowNewPlaylist(false);
         setNewPlaylistName("");
@@ -634,40 +680,104 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
             </div>
           </div>
 
-          {/* Video Category - Required */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 border border-amber-400/30">
-            <Label className="text-base font-medium flex items-center gap-2">
-              <span className="text-lg">📁</span>
-              Danh mục video <span className="text-red-500">*</span>
-            </Label>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">
-              FunPlay chỉ cho phép đăng video thuộc các danh mục dưới đây
-            </p>
-            <Select 
-              value={subCategory} 
-              onValueChange={(value) => setSubCategory(value as VideoSubCategory)}
-              disabled={uploading}
-            >
-              <SelectTrigger className="border-amber-300 bg-white/80">
-                <SelectValue placeholder="Chọn danh mục video..." />
-              </SelectTrigger>
-              <SelectContent>
-                {VIDEO_CATEGORY_OPTIONS.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    <span className="flex items-center gap-2">
-                      <span>{cat.icon}</span>
-                      <span>{cat.label}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {subCategory && (
-              <p className="text-xs text-amber-700 mt-2">
-                {VIDEO_CATEGORY_OPTIONS.find(c => c.id === subCategory)?.description}
-              </p>
+          {/* Shorts Upload Option */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 border border-pink-400/30">
+            <div className="flex items-center gap-3">
+              <Checkbox 
+                id="shorts-checkbox"
+                checked={isShorts}
+                onCheckedChange={(checked) => {
+                  setIsShorts(!!checked);
+                  if (checked) {
+                    setSubCategory(""); // Clear category when Shorts is selected
+                  }
+                }}
+                disabled={uploading}
+                className="border-pink-400 data-[state=checked]:bg-pink-500"
+              />
+              <Label htmlFor="shorts-checkbox" className="text-base font-medium flex items-center gap-2 cursor-pointer">
+                <Smartphone className="w-5 h-5 text-pink-500" />
+                <span>📱 Video Shorts (dọc 9:16, dưới 6 phút)</span>
+              </Label>
+            </div>
+
+            {isShorts && (
+              <Alert className="mt-3 border-pink-300 bg-pink-50/50">
+                <Smartphone className="w-4 h-4 text-pink-600" />
+                <AlertDescription className="text-pink-700">
+                  <div className="space-y-2">
+                    <p className="font-medium">📐 Yêu cầu Video Shorts:</p>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      <li>Tỷ lệ khung hình dọc (9:16, 3:4)</li>
+                      <li>Thời lượng dưới 6 phút</li>
+                    </ul>
+                    
+                    {videoFile && videoDuration > 0 && (
+                      <div className="mt-3 p-2 bg-white/50 rounded-lg space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>Thời lượng:</span>
+                          <span className="font-medium">
+                            {Math.floor(videoDuration / 60)}:{String(Math.floor(videoDuration % 60)).padStart(2, '0')}
+                          </span>
+                          {videoDuration < 360 ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 text-red-600" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>Kích thước:</span>
+                          <span className="font-medium">{videoAspectRatio}</span>
+                          {isValidShorts ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 text-red-600" />
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
             )}
           </div>
+
+          {/* Video Category - Required (hide when Shorts is selected) */}
+          {!isShorts && (
+            <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-yellow-500/10 to-amber-500/10 border border-amber-400/30">
+              <Label className="text-base font-medium flex items-center gap-2">
+                <span className="text-lg">📁</span>
+                Danh mục video <span className="text-red-500">*</span>
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">
+                FunPlay chỉ cho phép đăng video thuộc các danh mục dưới đây
+              </p>
+              <Select 
+                value={subCategory} 
+                onValueChange={(value) => setSubCategory(value as VideoSubCategory)}
+                disabled={uploading}
+              >
+                <SelectTrigger className="border-amber-300 bg-white/80">
+                  <SelectValue placeholder="Chọn danh mục video..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {VIDEO_CATEGORY_OPTIONS.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {subCategory && (
+                <p className="text-xs text-amber-700 mt-2">
+                  {VIDEO_CATEGORY_OPTIONS.find(c => c.id === subCategory)?.description}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Admin Notice */}
           <Alert className="border-blue-300 bg-blue-50">
@@ -774,7 +884,10 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={uploading}>
               Hủy
             </Button>
-            <Button type="submit" disabled={uploading || (!videoFile && !youtubeUrl) || !title || !subCategory}>
+            <Button 
+              type="submit" 
+              disabled={uploading || (!videoFile && !youtubeUrl) || !title || (!isShorts && !subCategory)}
+            >
               {uploading ? "Đang tải lên..." : "Tải lên"}
             </Button>
           </div>
