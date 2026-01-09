@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { MobileWalletGuide } from "./MobileWalletGuide";
+import { WalletSelectionModal } from "./WalletSelectionModal";
 import { useFunWalletSync, FUN_WALLET_URL } from "@/hooks/useFunWalletSync";
 
 // Wallet icons
@@ -35,6 +36,7 @@ export const WalletButton = () => {
   } = useWalletConnectionWithRetry();
 
   const [showGuide, setShowGuide] = useState(false);
+  const [showWalletSelection, setShowWalletSelection] = useState(false);
   const isMobile = isMobileBrowser();
   const { isLinked: isFunWalletLinked, funWalletAddress, openFunWallet } = useFunWalletSync();
 
@@ -59,8 +61,13 @@ export const WalletButton = () => {
     }
   };
 
-  // Handle connect with debug logging
-  const handleConnect = async () => {
+  // Handle connect - show wallet selection modal
+  const handleConnect = () => {
+    setShowWalletSelection(true);
+  };
+
+  // Handle connecting to other wallets via Web3Modal
+  const handleConnectOtherWallet = async () => {
     const status = getWeb3ConfigStatus();
     logWalletDebug('Connect button clicked', status);
     
@@ -235,6 +242,15 @@ export const WalletButton = () => {
         open={showGuide} 
         onOpenChange={setShowGuide}
         trigger={<></>}
+      />
+
+      {/* Wallet Selection Modal */}
+      <WalletSelectionModal
+        open={showWalletSelection}
+        onOpenChange={setShowWalletSelection}
+        onSelectFunWallet={() => {}}
+        onSelectOtherWallet={handleConnectOtherWallet}
+        isConnecting={isConnecting}
       />
     </>
   );
