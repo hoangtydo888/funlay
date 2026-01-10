@@ -3,18 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     
+    <!-- Prevent HTML caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <!-- Force cache clear before React loads -->
     <script>
       (function() {
-        var FORCE_VERSION = '2025.01.10.2';
+        var FORCE_VERSION = '2025.01.10.3';
         var stored = localStorage.getItem('force_version');
         if (stored !== FORCE_VERSION) {
-          console.log('[CacheBuster] New version detected, clearing all caches...');
+          console.log('[CacheBuster] New version detected:', FORCE_VERSION, 'Previous:', stored);
+          console.log('[CacheBuster] Clearing ALL caches...');
           localStorage.setItem('force_version', FORCE_VERSION);
           
           // Clear all caches
           if ('caches' in window) {
             caches.keys().then(function(names) {
+              console.log('[CacheBuster] Deleting', names.length, 'caches');
               names.forEach(function(name) { caches.delete(name); });
             });
           }
@@ -22,13 +29,28 @@
           // Unregister all service workers
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
+              console.log('[CacheBuster] Unregistering', regs.length, 'service workers');
               regs.forEach(function(reg) { reg.unregister(); });
             });
           }
           
-          // Force reload after cleanup
+          // Clear localStorage except force_version
+          var keysToRemove = [];
+          for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (key !== 'force_version') {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(function(key) {
+            localStorage.removeItem(key);
+          });
+          console.log('[CacheBuster] Cleared', keysToRemove.length, 'localStorage items');
+          
+          // Force hard reload with cache-busting query param
           setTimeout(function() {
-            window.location.reload(true);
+            console.log('[CacheBuster] Forcing hard reload...');
+            window.location.href = window.location.pathname + '?v=' + Date.now();
           }, 500);
         }
       })();

@@ -1,1 +1,5 @@
+# Prevent caching of HTML files
+/*.html  Cache-Control: no-cache, no-store, must-revalidate
+
+# SPA fallback
 /* /index.html 200
