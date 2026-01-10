@@ -89,7 +89,7 @@ export const UnifiedWalletButton = ({ compact = false, className }: UnifiedWalle
     );
   }
 
-  // Not connected - show connect button
+  // Not connected - show connect button with pulse animation
   return (
     <>
       <Button
@@ -97,11 +97,12 @@ export const UnifiedWalletButton = ({ compact = false, className }: UnifiedWalle
         onClick={() => setShowWalletModal(true)}
         disabled={isAnyLoading}
         className={cn(
-          "flex items-center gap-1.5 px-2 py-1 h-auto rounded-full",
+          "flex items-center gap-1.5 px-2 py-1 h-auto rounded-full relative",
           "bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-yellow-600/10",
           "hover:from-yellow-500/20 hover:via-orange-500/20 hover:to-yellow-600/20",
           "border border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-200",
           "hover:shadow-[0_0_10px_rgba(234,179,8,0.3)]",
+          "animate-wallet-pulse",
           compact ? "px-1.5 py-0.5" : "px-2.5 py-1.5",
           className
         )}
