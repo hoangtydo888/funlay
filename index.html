@@ -2,6 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Force cache clear before React loads -->
+    <script>
+      (function() {
+        var FORCE_VERSION = '2025.01.10.2';
+        var stored = localStorage.getItem('force_version');
+        if (stored !== FORCE_VERSION) {
+          console.log('[CacheBuster] New version detected, clearing all caches...');
+          localStorage.setItem('force_version', FORCE_VERSION);
+          
+          // Clear all caches
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          
+          // Unregister all service workers
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(reg) { reg.unregister(); });
+            });
+          }
+          
+          // Force reload after cleanup
+          setTimeout(function() {
+            window.location.reload(true);
+          }, 500);
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <title>FUN Play: Web3 AI Social</title>
     
