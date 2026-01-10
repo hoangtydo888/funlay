@@ -97,11 +97,17 @@ export const MobileBottomNav = () => {
                     <item.icon className="h-5 w-5 text-primary-foreground" />
                   </div>
                 ) : isWalletButton ? (
-                  <div className="relative">
+                  <div className={cn(
+                    "relative rounded-full",
+                    !isAnyWalletConnected && "animate-wallet-pulse"
+                  )}>
                     <img 
                       src="/images/fun-wallet-logo.png" 
                       alt="FUN Wallet" 
-                      className="h-6 w-6 rounded-full"
+                      className={cn(
+                        "h-6 w-6 rounded-full transition-all",
+                        !isAnyWalletConnected && "ring-2 ring-yellow-500/50"
+                      )}
                     />
                     {isAnyWalletConnected && (
                       <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />

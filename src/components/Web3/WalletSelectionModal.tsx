@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, ExternalLink } from "lucide-react";
-import { FUN_WALLET_URL } from "@/hooks/useFunWalletSync";
+import { Input } from "@/components/ui/input";
+import { Wallet, ExternalLink, Copy, Check, Link2 } from "lucide-react";
+import { FUN_WALLET_URL, useFunWalletSync } from "@/hooks/useFunWalletSync";
 import { toast } from "sonner";
 
 interface WalletSelectionModalProps {
@@ -21,6 +22,10 @@ export const WalletSelectionModal = ({
   onSelectOtherWallet,
   isConnecting = false,
 }: WalletSelectionModalProps) => {
+  const [manualAddress, setManualAddress] = useState("");
+  const [isLinking, setIsLinking] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { linkFunWallet } = useFunWalletSync();
   
   // Listen for callback success from popup
   useEffect(() => {
@@ -38,7 +43,7 @@ export const WalletSelectionModal = ({
     return () => window.removeEventListener('message', handleMessage);
   }, [onOpenChange]);
   
-  const handleFunWallet = () => {
+  const handleOpenFunWallet = () => {
     // Create callback URL for FUN Wallet to redirect back
     const callbackUrl = `${window.location.origin}/fun-wallet-callback`;
     const funWalletConnectUrl = `${FUN_WALLET_URL}/connect?callback=${encodeURIComponent(callbackUrl)}&app=funplay`;
@@ -59,7 +64,44 @@ export const WalletSelectionModal = ({
     }
     
     onSelectFunWallet();
-    // Don't close modal immediately - wait for callback
+  };
+
+  const handleManualLink = async () => {
+    const trimmedAddress = manualAddress.trim();
+    
+    // Validate address format
+    if (!trimmedAddress) {
+      toast.error('Vui lòng nhập địa chỉ ví');
+      return;
+    }
+    
+    if (!/^0x[a-fA-F0-9]{40}$/.test(trimmedAddress)) {
+      toast.error('Địa chỉ ví không hợp lệ. Vui lòng kiểm tra lại.');
+      return;
+    }
+    
+    setIsLinking(true);
+    try {
+      const success = await linkFunWallet(trimmedAddress);
+      if (success) {
+        toast.success('Đã liên kết FUN Wallet thành công!');
+        setManualAddress("");
+        onOpenChange(false);
+      } else {
+        toast.error('Không thể liên kết ví. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('[WalletSelectionModal] Link error:', error);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleOtherWallet = () => {
@@ -73,39 +115,74 @@ export const WalletSelectionModal = ({
         <DialogHeader>
           <DialogTitle className="text-center flex items-center justify-center gap-2">
             <Wallet className="h-5 w-5" />
-            Kết nối Ví
+            Kết nối FUN Wallet
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* FUN Wallet - Primary Option with Logo */}
-          <div className="relative">
-            <Button
-              onClick={handleFunWallet}
-              className="w-full h-auto p-4 flex flex-col items-start gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 border-2 border-yellow-500/50 hover:border-yellow-500 transition-all"
-              variant="outline"
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <img 
-                    src="/images/fun-wallet-logo.png" 
-                    alt="FUN Wallet" 
-                    className="h-10 w-10 rounded-full shadow-lg ring-2 ring-yellow-500/30"
-                  />
-                  <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-foreground">FUN Wallet</span>
-                      <Badge className="bg-yellow-500 text-black text-xs">Khuyên dùng</Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Ví chính thức của hệ sinh thái FUN
-                    </p>
-                  </div>
-                </div>
-                <ExternalLink className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </Button>
+          {/* FUN Wallet Section with Logo */}
+          <div className="text-center space-y-3">
+            <img 
+              src="/images/fun-wallet-logo.png" 
+              alt="FUN Wallet" 
+              className="h-16 w-16 mx-auto rounded-full shadow-lg ring-4 ring-yellow-500/30"
+            />
+            <p className="text-sm text-muted-foreground">
+              Ví chính thức của hệ sinh thái FUN
+            </p>
           </div>
+
+          {/* Manual Link Section */}
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Link2 className="h-4 w-4 text-primary" />
+              Liên kết địa chỉ ví thủ công
+            </div>
+            
+            <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Mở FUN Wallet và sao chép địa chỉ ví của bạn</li>
+              <li>Dán địa chỉ ví vào ô bên dưới</li>
+              <li>Nhấn "Liên kết ví" để hoàn tất</li>
+            </ol>
+            
+            <div className="flex gap-2">
+              <Input
+                placeholder="0x..."
+                value={manualAddress}
+                onChange={(e) => setManualAddress(e.target.value)}
+                className="font-mono text-sm"
+              />
+              <Button
+                onClick={handleManualLink}
+                disabled={isLinking || !manualAddress.trim()}
+                className="shrink-0 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+              >
+                {isLinking ? (
+                  <span className="animate-pulse">...</span>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Liên kết
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Open FUN Wallet Button */}
+          <Button
+            onClick={handleOpenFunWallet}
+            variant="outline"
+            className="w-full h-auto p-3 flex items-center justify-center gap-2 border-yellow-500/50 hover:border-yellow-500 hover:bg-yellow-500/10"
+          >
+            <img 
+              src="/images/fun-wallet-logo.png" 
+              alt="FUN Wallet" 
+              className="h-6 w-6 rounded-full"
+            />
+            <span>Mở FUN Wallet</span>
+            <ExternalLink className="h-4 w-4 ml-1" />
+          </Button>
 
           {/* Divider */}
           <div className="relative">
@@ -156,4 +233,3 @@ export const WalletSelectionModal = ({
     </Dialog>
   );
 };
-
