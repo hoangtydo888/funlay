@@ -78,7 +78,7 @@ export const WalletSelectionModal = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* FUN Wallet - Primary Option */}
+          {/* FUN Wallet - Primary Option with Logo */}
           <div className="relative">
             <Button
               onClick={handleFunWallet}
@@ -87,7 +87,11 @@ export const WalletSelectionModal = ({
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">🎮</span>
+                  <img 
+                    src="/images/fun-wallet-logo.png" 
+                    alt="FUN Wallet" 
+                    className="h-10 w-10 rounded-full shadow-lg ring-2 ring-yellow-500/30"
+                  />
                   <div className="text-left">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-foreground">FUN Wallet</span>

@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
-import { MultiTokenWallet } from "@/components/Web3/MultiTokenWallet";
+import { UnifiedWalletButton } from "@/components/Web3/UnifiedWalletButton";
 import { CAMLYMiniWidget } from "@/components/Web3/CAMLYMiniWidget";
-import { FunWalletMiniWidget } from "@/components/Web3/FunWalletMiniWidget";
 import { UploadVideoModal } from "@/components/Video/UploadVideoModal";
 import { ClaimRewardsButton } from "@/components/Rewards/ClaimRewardsButton";
 import { useAuth } from "@/hooks/useAuth";
@@ -144,10 +143,9 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
 
       {/* Right section */}
       <div className="flex items-center gap-2">
-        <FunWalletMiniWidget />
+        <UnifiedWalletButton />
         <CAMLYMiniWidget />
         <ClaimRewardsButton />
-        <MultiTokenWallet />
         
         {user && (
           <DropdownMenu>
