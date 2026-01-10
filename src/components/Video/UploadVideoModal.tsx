@@ -68,7 +68,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
       const height = video.videoHeight;
       const aspectRatioValue = height / width; // Dọc > 1, Ngang < 1
       
-      setVideoDuration(duration);
+      setVideoDuration(Math.round(duration));
       setVideoAspectRatio(`${width}x${height}`);
       
       // Shorts: aspect ratio dọc (height > width) và duration < 360s (6 phút)
@@ -463,7 +463,7 @@ export function UploadVideoModal({ open, onOpenChange }: UploadVideoModalProps) 
         is_public: true,
         category: isShorts ? "shorts" : (isMeditation ? "meditation" : "general"),
         sub_category: null,
-        duration: videoDuration || null,
+        duration: videoDuration ? Math.round(videoDuration) : null,
         approval_status: "approved",
       }).select("id").single();
 
