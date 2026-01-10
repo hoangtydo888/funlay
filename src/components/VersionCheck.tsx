@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 // Update this version with each deployment
-const APP_VERSION = '2025.01.10.1';
+const APP_VERSION = '2025.01.10.3';
 
 export const VersionCheck = () => {
   useEffect(() => {
