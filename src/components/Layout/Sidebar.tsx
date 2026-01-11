@@ -107,35 +107,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       >
         <ScrollArea className="h-full">
           <div className="py-2">
-            {/* Main navigation */}
-            <div className="px-3 py-2">
-              {mainNavItems.map((item) => (
-                <Button
-                  key={item.label}
-                  variant="ghost"
-                  onClick={() => handleNavigation(item.href)}
-                  className={cn(
-                    "w-full justify-start gap-6 px-3 py-2.5 h-auto hover:bg-primary/10 hover:text-primary transition-all duration-300",
-                    location.pathname === item.href && "bg-primary/10 text-primary font-semibold",
-                    item.special && "bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-amber-500/10 hover:from-cyan-500/20 hover:via-purple-500/20 hover:to-amber-500/20"
-                  )}
-                >
-                  {item.icon && (
-                    <item.icon className={cn("h-5 w-5", item.special && "text-cyan-400")} />
-                  )}
-                  <span className={cn(
-                    item.special && "bg-gradient-to-r from-cyan-400 via-purple-400 to-amber-400 bg-clip-text text-transparent font-medium"
-                  )}>
-                    {item.label}
-                  </span>
-                  {item.special && <span className="ml-auto text-sm">✨</span>}
-                </Button>
-              ))}
-            </div>
-
-            <div className="h-px bg-border my-2" />
-
-            {/* FUN ECOSYSTEM section */}
+            {/* FUN ECOSYSTEM section - ĐẦU TIÊN */}
             <div className="px-3 py-2">
               <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 FUN ECOSYSTEM
@@ -158,16 +130,36 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                       className="h-6 w-6 rounded-full shadow-md object-cover ring-2 ring-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
                     />
                   )}
-                  <span className={cn(
-                    item.isWallet 
-                      ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent font-bold"
-                      : "text-teal-700 font-semibold"
-                  )}>
+                  <span className="text-sky-700 font-semibold">
                     {item.label}
                   </span>
                   {item.external && (
                     <ExternalLink className="h-4 w-4 ml-auto text-yellow-500" />
                   )}
+                </Button>
+              ))}
+            </div>
+
+            <div className="h-px bg-border my-2" />
+
+            {/* Main navigation */}
+            <div className="px-3 py-2">
+              {mainNavItems.map((item) => (
+                <Button
+                  key={item.label}
+                  variant="ghost"
+                  onClick={() => handleNavigation(item.href)}
+                  className={cn(
+                    "w-full justify-start gap-6 px-3 py-2.5 h-auto hover:bg-primary/10 hover:text-primary transition-all duration-300",
+                    location.pathname === item.href && "bg-primary/10 text-primary font-semibold"
+                  )}
+                >
+                  {item.icon && (
+                    <item.icon className="h-5 w-5 text-sky-700" />
+                  )}
+                  <span className="text-sky-700 font-medium">
+                    {item.label}
+                  </span>
                 </Button>
               ))}
             </div>
@@ -186,8 +178,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     location.pathname === item.href && "bg-primary/10 text-primary font-semibold"
                   )}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5 text-sky-700" />
+                  <span className="text-sky-700">{item.label}</span>
                 </Button>
               ))}
             </div>
@@ -204,9 +196,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   location.pathname === "/leaderboard" && "bg-primary/10 text-primary font-semibold"
                 )}
               >
-                <Trophy className="h-5 w-5 text-cosmic-gold" />
-                <span>Bảng Xếp Hạng</span>
-                <span className="ml-auto text-xl">🏆</span>
+                <Trophy className="h-5 w-5 text-sky-700" />
+                <span className="text-sky-700">Bảng Xếp Hạng</span>
               </Button>
               <Button
                 variant="ghost"
@@ -216,8 +207,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   location.pathname === "/reward-history" && "bg-primary/10 text-primary font-semibold"
                 )}
               >
-                <Coins className="h-5 w-5 text-cosmic-gold" />
-                <span>Lịch Sử Phần Thưởng</span>
+                <Coins className="h-5 w-5 text-sky-700" />
+                <span className="text-sky-700">Lịch Sử Phần Thưởng</span>
               </Button>
               <Button
                 variant="ghost"
@@ -227,8 +218,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   location.pathname === "/referral" && "bg-primary/10 text-primary font-semibold"
                 )}
               >
-                <UserPlus className="h-5 w-5 text-green-400" />
-                <span>Giới Thiệu Bạn Bè</span>
+                <UserPlus className="h-5 w-5 text-sky-700" />
+                <span className="text-sky-700">Giới Thiệu Bạn Bè</span>
               </Button>
             </div>
 
@@ -244,8 +235,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     location.pathname === item.href && "bg-primary/10 text-primary font-semibold"
                   )}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  <item.icon className="h-5 w-5 text-sky-700" />
+                  <span className="text-sky-700">{item.label}</span>
                 </Button>
               ))}
             </div>
@@ -262,8 +253,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   location.pathname === "/wallet" && "bg-primary/10 text-primary font-semibold"
                 )}
               >
-                <Wallet className="h-5 w-5 text-cosmic-gold" />
-                <span>Wallet</span>
+                <Wallet className="h-5 w-5 text-sky-700" />
+                <span className="text-sky-700">Wallet</span>
               </Button>
             </div>
           </div>

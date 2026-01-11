@@ -112,17 +112,15 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
       onClick={() => handleNavigation(item.href)}
       className={cn(
         "w-full justify-start gap-4 px-4 py-3 h-auto text-base hover:bg-primary/10",
-        location.pathname === item.href && "bg-primary/10 text-primary font-semibold",
-        item.special && "bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-amber-500/10"
+        location.pathname === item.href && "bg-primary/10 text-primary font-semibold"
       )}
     >
       {item.icon && (
-        <item.icon className={cn("h-6 w-6", item.special && "text-primary")} />
+        <item.icon className="h-6 w-6 text-sky-700" />
       )}
-      <span className={item.special ? "bg-gradient-to-r from-cyan-400 via-purple-400 to-amber-400 bg-clip-text text-transparent font-medium" : ""}>
+      <span className="text-sky-700 font-medium">
         {item.label}
       </span>
-      {item.special && <span className="ml-auto">✨</span>}
     </Button>
   );
 
@@ -143,11 +141,7 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
           className="h-6 w-6 rounded-full shadow-md object-cover ring-2 ring-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
         />
       )}
-      <span className={cn(
-        item.isWallet 
-          ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent font-bold"
-          : "text-teal-700 font-semibold"
-      )}>
+      <span className="text-sky-700 font-semibold">
         {item.label}
       </span>
       {item.external && (
@@ -213,22 +207,22 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
             {/* Navigation */}
             <ScrollArea className="h-[calc(100%-140px)]">
               <div className="py-2">
-                {/* Main Navigation */}
-                <div className="px-2">
-                  {mainNavItems.map((item) => (
-                    <NavButton key={item.label} item={item} />
-                  ))}
-                </div>
-
-                <div className="h-px bg-border my-3 mx-4" />
-
-                {/* FUN ECOSYSTEM */}
+                {/* FUN ECOSYSTEM - ĐẦU TIÊN */}
                 <div className="px-2">
                   <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     FUN ECOSYSTEM
                   </p>
                   {funPlatformItems.map((item) => (
                     <FunPlatformButton key={item.label} item={item} />
+                  ))}
+                </div>
+
+                <div className="h-px bg-border my-3 mx-4" />
+
+                {/* Main Navigation */}
+                <div className="px-2">
+                  {mainNavItems.map((item) => (
+                    <NavButton key={item.label} item={item} />
                   ))}
                 </div>
 
