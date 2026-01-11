@@ -140,16 +140,18 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
         <img 
           src={item.customIcon} 
           alt={item.label} 
-          className="h-6 w-6 rounded-full shadow-md object-cover"
+          className="h-6 w-6 rounded-full shadow-md object-cover ring-2 ring-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
         />
       )}
       <span className={cn(
-        item.isWallet && "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent font-bold"
+        item.isWallet 
+          ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent font-bold"
+          : "text-teal-700 font-semibold"
       )}>
         {item.label}
       </span>
       {item.external && (
-        <ExternalLink className="h-4 w-4 ml-auto text-muted-foreground" />
+        <ExternalLink className="h-4 w-4 ml-auto text-yellow-500" />
       )}
     </Button>
   );
@@ -220,10 +222,10 @@ export const MobileDrawer = ({ isOpen, onClose }: MobileDrawerProps) => {
 
                 <div className="h-px bg-border my-3 mx-4" />
 
-                {/* FUN Platforms */}
+                {/* FUN ECOSYSTEM */}
                 <div className="px-2">
                   <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    FUN Platforms
+                    FUN ECOSYSTEM
                   </p>
                   {funPlatformItems.map((item) => (
                     <FunPlatformButton key={item.label} item={item} />
