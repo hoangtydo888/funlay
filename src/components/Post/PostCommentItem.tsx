@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { PostCommentInput } from './PostCommentInput';
 import { PostComment } from '@/hooks/usePostComments';
 import { cn } from '@/lib/utils';
+import { CommentLikesList } from './CommentLikesList';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -126,40 +127,42 @@ export const PostCommentItem: React.FC<PostCommentItemProps> = ({
           {/* Actions */}
           <div className="flex items-center gap-1 mt-2">
             {/* Like button */}
-            <motion.div whileTap={{ scale: 0.9 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-7 px-2 text-xs transition-colors",
-                  isLiked 
-                    ? "text-red-500 hover:text-red-600" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-                onClick={handleLikeClick}
-                disabled={isLiking}
-              >
-                <motion.div
-                  animate={isLiked ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.2 }}
+            <CommentLikesList commentId={comment.id} likeCount={comment.like_count}>
+              <motion.div whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2 text-xs transition-colors",
+                    isLiked 
+                      ? "text-red-500 hover:text-red-600" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={handleLikeClick}
+                  disabled={isLiking}
                 >
-                  <Heart 
-                    className={cn(
-                      "h-3.5 w-3.5 mr-1 transition-all",
-                      isLiked && "fill-current"
-                    )} 
-                  />
-                </motion.div>
-                {comment.like_count > 0 && (
-                  <span className={cn(
-                    "tabular-nums",
-                    isLiked && "text-red-500"
-                  )}>
-                    {comment.like_count}
-                  </span>
-                )}
-              </Button>
-            </motion.div>
+                  <motion.div
+                    animate={isLiked ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Heart 
+                      className={cn(
+                        "h-3.5 w-3.5 mr-1 transition-all",
+                        isLiked && "fill-current"
+                      )} 
+                    />
+                  </motion.div>
+                  {comment.like_count > 0 && (
+                    <span className={cn(
+                      "tabular-nums cursor-pointer hover:underline",
+                      isLiked && "text-red-500"
+                    )}>
+                      {comment.like_count}
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
+            </CommentLikesList>
 
             {!isReply && user && (
               <Button
